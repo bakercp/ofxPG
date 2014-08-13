@@ -10,26 +10,22 @@
 #include "ofConstants.h"
 #include "pugixml.hpp"
 #include "ofAddon.h"
-#include "baseProject.h"
+#include "BaseProject.h"
 
-class CBWinProject: virtual public baseProject  {
+
+class CBWinProject: virtual public BaseProject
+{
 public:
-
     void setup();
 
     bool createProjectFile();
     bool loadProjectFile();
     bool saveProjectFile();
 
-	void addSrc(string srcName, string folder);
-	void addInclude(string includeName);
-	void addLibrary(string libraryName, LibType libType = RELEASE_LIB);
+	void addSrc(const std::string& srcName, const std::string& folder);
+	void addInclude(const std::string& includeName);
+	void addLibrary(const std::string& libraryName, LibType libType = RELEASE_LIB);
 
-	string getName();
-	string getPath();
-
-	static string LOG_NAME;
-
-private:
+	static const std::string LOG_NAME;
 
 };

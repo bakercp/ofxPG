@@ -1,34 +1,37 @@
-//
-//  baseProject.cpp
-//  projectGenerator
-//
-//  Created by molmol on 3/12/12.
-//  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
-//
+#include "BaseProject.h"
 
-#include "baseProject.h"
 
-void baseProject::setup(string _target){
+BaseProject::BaseProject(): bLoaded(false)
+{
+}
+
+
+void BaseProject::setup(const std::string& _target)
+{
     target = _target;
     templatePath = ofFilePath::join(getOFRoot(),"scripts/" + target + "/template/");
     setup(); // call the inherited class setup(), now that target is set.
 }
 
-bool baseProject::create(string path){
 
+bool BaseProject::create(const std::string& path)
+{
     addons.clear();
 
-    projectDir = ofFilePath::addTrailingSlash(path);
+    projectPath = ofFilePath::addTrailingSlash(path);
     projectName = ofFilePath::getFileName(path);
     bool bDoesDirExist = false;
     
-    ofDirectory project(ofFilePath::join(projectDir,"src"));    // this is a directory, really?
-    if(project.exists()){
+    ofDirectory project(ofFilePath::join(projectPath,"src"));    // this is a directory, really?
+    if (project.exists())
+    {
         bDoesDirExist = true;
-    }else{
-        ofDirectory project(projectDir);
-        ofFile::copyFromTo(ofFilePath::join(templatePath,"src"),ofFilePath::join(projectDir,"src"));
-        ofFile::copyFromTo(ofFilePath::join(templatePath,"bin"),ofFilePath::join(projectDir,"bin"));
+    }
+    else
+    {
+        ofDirectory project(projectPath);
+        ofFile::copyFromTo(ofFilePath::join(templatePath,"src"),ofFilePath::join(projectPath,"src"));
+        ofFile::copyFromTo(ofFilePath::join(templatePath,"bin"),ofFilePath::join(projectPath,"bin"));
     }
 
     
@@ -42,11 +45,11 @@ bool baseProject::create(string path){
 
     if (bDoesDirExist){
         vector < string > fileNames;
-        getFilesRecursively(ofFilePath::join(projectDir , "src"), fileNames);
+        getFilesRecursively(ofFilePath::join(projectPath , "src"), fileNames);
 
         for (int i = 0; i < (int)fileNames.size(); i++){
 
-            fileNames[i].erase(fileNames[i].begin(), fileNames[i].begin() + projectDir.length());
+            fileNames[i].erase(fileNames[i].begin(), fileNames[i].begin() + projectPath.length());
 
             string first, last;
 #ifdef TARGET_WIN32
@@ -110,7 +113,8 @@ bool baseProject::create(string path){
     return true;
 }
 
-bool baseProject::save(bool createMakeFile){
+bool BaseProject::save(bool createMakeFile)
+{
 
     // only save an addons.make file if requested on ANY platform
     // this way we don't thrash the git repo for our examples, but
@@ -118,7 +122,7 @@ bool baseProject::save(bool createMakeFile){
     // way it can be distributed and re-used by others with the PG
 
     if(createMakeFile){
-        ofFile addonsMake(ofFilePath::join(projectDir,"addons.make"), ofFile::WriteOnly);
+        ofFile addonsMake(ofFilePath::join(projectPath,"addons.make"), ofFile::WriteOnly);
         for(int i = 0; i < addons.size(); i++){
             addonsMake << addons[i].name << endl;
         }
@@ -127,35 +131,64 @@ bool baseProject::save(bool createMakeFile){
 	return saveProjectFile();
 }
 
-void baseProject::addAddon(ofAddon & addon){
-    for(int i=0;i<(int)addons.size();i++){
-		if(addons[i].name==addon.name) return;
+void BaseProject::addAddon(ofAddon& addon)
+{
+
+    for (std::size_t i = 0; i < addons.size(); ++i)
+    {
+		if(addons[i].name == addon.name)
+        {
+            return;
+        }
 	}
 
 	addons.push_back(addon);
 
-    for(int i=0;i<(int)addon.includePaths.size();i++){
+    for (std::size_t i = 0; i < addon.includePaths.size(); ++i)
+    {
         ofLogVerbose() << "adding addon include path: " << addon.includePaths[i];
         addInclude(addon.includePaths[i]);
     }
-    for(int i=0;i<(int)addon.libs.size();i++){
+
+    for (std::size_t i = 0; i < addon.libs.size(); ++i)
+    {
         ofLogVerbose() << "adding addon libs: " << addon.libs[i];
-        addLibrary(addon.libs[i]);
+        addLibrary(addon.libs[i], RELEASE_LIB);
     }
-    for(int i=0;i<(int)addon.srcFiles.size(); i++){
+
+    for (std::size_t i = 0; i < addon.srcFiles.size(); ++i)
+    {
         ofLogVerbose() << "adding addon srcFiles: " << addon.srcFiles[i];
         addSrc(addon.srcFiles[i],addon.filesToFolders[addon.srcFiles[i]]);
     }
 }
 
-void baseProject::parseAddons(){
-	ofFile addonsMake(ofFilePath::join(projectDir,"addons.make"));
+void BaseProject::parseAddons()
+{
+	ofFile addonsMake(ofFilePath::join(projectPath,"addons.make"));
 	ofBuffer addonsMakeMem;
 	addonsMake >> addonsMakeMem;
-	while(!addonsMakeMem.isLastLine()){
+
+	while (!addonsMakeMem.isLastLine())
+    {
 		ofAddon addon;
-		addon.pathToOF = getOFRelPath(projectDir);
-		addon.fromFS(ofFilePath::join(ofFilePath::join(getOFRoot(), "addons"), addonsMakeMem.getNextLine()),target);
+		addon.pathToOF = getOFRelPath(projectPath);
+		addon.fromFS(ofFilePath::join(ofFilePath::join(getOFRoot(), "addons"),
+                                      addonsMakeMem.getNextLine()),
+                                      target);
 		addAddon(addon);
 	}
 }
+
+
+std::string BaseProject::getName() const
+{
+    return projectName;
+};
+
+
+std::string BaseProject::getPath() const
+{
+    return projectPath;
+};
+

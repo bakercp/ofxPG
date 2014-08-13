@@ -4,13 +4,13 @@
 #include "ofConstants.h"
 #include "pugixml.hpp"
 #include "ofAddon.h"
-#include "baseProject.h"
+#include "BaseProject.h"
 
-class visualStudioProject : public baseProject {
 
+class VisualStudioProject: public BaseProject
+{
 public:
-
-    void setup(string ofRoot= "../../../");
+    void setup(const string& ofRoot= "../../../");
 
     void setup();
 
@@ -18,18 +18,18 @@ public:
     bool loadProjectFile();
     bool saveProjectFile();
 
-    void addSrc(string srcFile, string folder);
-    void addInclude(string includeName);
-    void addLibrary(string libraryName, LibType libType);
+    void addSrc(const string& srcFile, const string& folder);
+    void addInclude(const string& includeName);
+    void addLibrary(const string& libraryName, LibType libType);
 
     void addAddon(ofAddon & addon);
 
-	static string LOG_NAME;
+	static const std::string LOG_NAME;
 
 	pugi::xml_document filterXmlDoc;
 
 
-	void appendFilter(string folderName);
+	void appendFilter(const string& folderName);
 
 private:
 

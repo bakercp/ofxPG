@@ -8,19 +8,19 @@
 #pragma once
 
 #include "ofConstants.h"
-
 #include "pugixml.hpp"
-
 #include "ofMain.h"
 
 
-string generateUUID(string input);
+std::string generateUUID(string input);
 
 string getOFRoot();
 string getAddonsRoot();
 void setOFRoot(string path);
+
 void findandreplace( std::string& tInput, std::string tFind, std::string tReplace );
-void findandreplaceInTexfile (string fileName, string tFind, string tReplace );
+
+void findandreplaceInTexfile(string fileName, string tFind, string tReplace );
 
 
 bool doesTagAndAttributeExist(pugi::xml_document & doc, string tag, string attribute, string newValue);

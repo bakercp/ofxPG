@@ -4,24 +4,27 @@
 #include "visualStudioProject.h"
 #include "Utils.h"
 
-string visualStudioProject::LOG_NAME = "visualStudioProjectFile";
+const std::string VisualStudioProject::LOG_NAME = "visualStudioProjectFile";
 
-void visualStudioProject::setup() {
-    ;
+
+void VisualStudioProject::setup()
+{
 }
 
-bool visualStudioProject::createProjectFile(){
 
-    string project = ofFilePath::join(projectDir,projectName + ".vcxproj");
-    string user = ofFilePath::join(projectDir,projectName + ".vcxproj.user");
-    string solution = ofFilePath::join(projectDir,projectName + ".sln");
-	string filters = ofFilePath::join(projectDir, projectName + ".vcxproj.filters");
+bool VisualStudioProject::createProjectFile()
+{
+
+    string project = ofFilePath::join(projectPath,projectName + ".vcxproj");
+    string user = ofFilePath::join(projectPath,projectName + ".vcxproj.user");
+    string solution = ofFilePath::join(projectPath,projectName + ".sln");
+	string filters = ofFilePath::join(projectPath, projectName + ".vcxproj.filters");
 
     ofFile::copyFromTo(ofFilePath::join(templatePath,"emptyExample.vcxproj"),project,false, true);
     ofFile::copyFromTo(ofFilePath::join(templatePath,"emptyExample.vcxproj.user"),user, false, true);
     ofFile::copyFromTo(ofFilePath::join(templatePath,"emptyExample.sln"),solution, false, true);
 	ofFile::copyFromTo(ofFilePath::join(templatePath,"emptyExample.vcxproj.filters"),filters, false, true);
-	ofFile::copyFromTo(ofFilePath::join(templatePath,"icon.rc"), projectDir + "icon.rc", false, true);
+	ofFile::copyFromTo(ofFilePath::join(templatePath,"icon.rc"), projectPath + "icon.rc", false, true);
 
 	ofFile filterFile(filters);
 	string temp = filterFile.readToBuffer();
@@ -33,7 +36,7 @@ bool visualStudioProject::createProjectFile(){
     findandreplaceInTexfile(user,"emptyExample",projectName);
     findandreplaceInTexfile(project,"emptyExample",projectName);
 
-    string relRoot = getOFRelPath(ofFilePath::removeTrailingSlash(projectDir));
+    string relRoot = getOFRelPath(ofFilePath::removeTrailingSlash(projectPath));
     if (relRoot != "../../../"){
 
         string relRootWindows = relRoot;
@@ -55,9 +58,9 @@ bool visualStudioProject::createProjectFile(){
 }
 
 
-bool visualStudioProject::loadProjectFile(){
+bool VisualStudioProject::loadProjectFile(){
 
-    ofFile project(projectDir + projectName + ".vcxproj");
+    ofFile project(projectPath + projectName + ".vcxproj");
 	if(!project.exists()){
 		ofLogError(LOG_NAME) << "error loading" << project.path() << "doesn't exist";
 		return false;
@@ -68,18 +71,19 @@ bool visualStudioProject::loadProjectFile(){
 }
 
 
-bool visualStudioProject::saveProjectFile(){
+bool VisualStudioProject::saveProjectFile(){
 
-	string filters = projectDir + projectName + ".vcxproj.filters";
+	string filters = projectPath + projectName + ".vcxproj.filters";
 	filterXmlDoc.save_file(filters.c_str());
 
 
-    return doc.save_file((projectDir + projectName + ".vcxproj").c_str());
+    return doc.save_file((projectPath + projectName + ".vcxproj").c_str());
 }
 
 
-void visualStudioProject::appendFilter(string folderName){
-
+void VisualStudioProject::appendFilter(const string& _folderName)
+{
+    std::string folderName = _folderName;
 
     fixSlashOrder(folderName);
 
@@ -110,7 +114,10 @@ void visualStudioProject::appendFilter(string folderName){
 	 }
 }
 
-void visualStudioProject::addSrc(string srcFile, string folder){
+void VisualStudioProject::addSrc(const std::string&  _srcFile, const std::string&  _folder){
+
+    std::string folder = _folder;
+    std::string srcFile = _srcFile;
 
     fixSlashOrder(folder);
     fixSlashOrder(srcFile);
@@ -145,8 +152,9 @@ void visualStudioProject::addSrc(string srcFile, string folder){
 
 }
 
-void visualStudioProject::addInclude(string includeName){
+void VisualStudioProject::addInclude(const std::string& _includeName){
 
+    std::string includeName = _includeName;
 
     fixSlashOrder(includeName);
 
@@ -171,8 +179,9 @@ void visualStudioProject::addInclude(string includeName){
     //appendValue(doc, "Add", "directory", includeName);
 }
 
-void visualStudioProject::addLibrary(string libraryName, LibType libType){
+void VisualStudioProject::addLibrary(const string&  _libraryName, LibType libType){
 
+    std::string libraryName = _libraryName;
 
     fixSlashOrder(libraryName);
 
@@ -237,7 +246,8 @@ void visualStudioProject::addLibrary(string libraryName, LibType libType){
 
 }
 
-void visualStudioProject::addAddon(ofAddon & addon){
+void VisualStudioProject::addAddon(ofAddon & addon)
+{
     for(int i=0;i<(int)addons.size();i++){
 		if(addons[i].name==addon.name) return;
 	}

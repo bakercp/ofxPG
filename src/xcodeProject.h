@@ -1,14 +1,15 @@
-
-
 #pragma once
 
-#include "baseProject.h"
 
-class xcodeProject : public baseProject {
+#include "BaseProject.h"
 
+
+class XcodeProject: public BaseProject
+{
 public:
+    XcodeProject();
 
-    xcodeProject(){};
+    virtual ~XcodeProject();
 
     void setup();
 
@@ -21,26 +22,30 @@ private:
 
 public:
 
-    void addSrc(string srcFile, string folder);
-    void addInclude(string includeName);
-    void addLibrary(string libraryName, LibType libType = RELEASE_LIB);
+    void addSrc(const string& srcFile, const string& folder);
+    void addInclude(const string& includeName);
+    void addLibrary(const string& libraryName, LibType libType = RELEASE_LIB);
 
-    void addAddon(ofAddon & addon);
+    void addAddon(ofAddon& addon);
 
     void saveWorkspaceXML();
     void saveScheme();
     void renameProject();
 
-	string srcUUID;
-	string addonUUID;
-	string resourcesUUID;
-	string buildPhaseUUID;
-    string buildPhaseResourcesUUID; 
+    std::string srcUUID;
+	std::string addonUUID;
+	std::string resourcesUUID;
+	std::string buildPhaseUUID;
+    std::string buildPhaseResourcesUUID;
 
-    pugi::xml_node findOrMakeFolderSet( pugi::xml_node nodeToAddTo, vector < string > & folders, string pathForHash);
+    pugi::xml_node findOrMakeFolderSet( pugi::xml_node nodeToAddTo,
+                                       std::vector<std::string>& folders,
+                                       const std::string& pathForHash);
+
 	pugi::xml_node insertPoint;         // where are we inserting items (at the second dict tag,
                                         // /plist[1]/dict[1]/dict[2])
-    bool findArrayForUUID(string UUID, pugi::xml_node & nodeMe);
+
+    bool findArrayForUUID(const string& UUID, pugi::xml_node& nodeMe);
 
 };
 
