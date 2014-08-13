@@ -13,12 +13,11 @@
 
 #include "CBLinuxProject.h"
 #include "CBWinProject.h"
-#include "visualStudioProject.h"
-#include "xcodeProject.h"
+#include "VisualStudioProject.h"
+#include "XcodeProject.h"
 #include <Poco/Path.h>
 
 
-using Poco::Util::Application;
 using Poco::Util::Option;
 using Poco::Util::OptionSet;
 using Poco::Util::HelpFormatter;
@@ -38,28 +37,22 @@ using Poco::Path;
  
  */
 
-
-
-
-
-
-class commandLineProjectGenerator: public Application{
+class CommandLineProjectGenerator: public Poco::Util::Application
+{
 public:
-    
-    
-    //-----------------------------------------------------
-    enum pgMode {
+    enum pgMode
+    {
         PG_MODE_NONE,
         PG_MODE_CREATE,
         PG_MODE_UPDATE
     };
     
     
-    string              directoryForRecursion;
-    string              projectPath;
-    string              ofPath;
-    vector <string>     addons;
-    vector <int>        targets;
+    std::string              directoryForRecursion;
+    std::string              projectPath;
+    std::string              ofPath;
+    std::vector<std::string>     addons;
+    std::vector<int>        targets;
     
     bool bHasCommand;                       // do we have an "update" or "create" command
     bool bVerbose;                          // be verbose
@@ -69,34 +62,39 @@ public:
     bool bHelpRequested;                    // did we request help?
     bool bDryRun;                           // do dry run (useful for debugging recursive update)
     
-    string target;                          // the current project target platform in string form (for finding templates)
-    baseProject * project;
+    std::string target; // the current project target platform in string form (for finding templates)
+    BaseProject* project;
     
-	commandLineProjectGenerator(){
-        mode = PG_MODE_NONE;
-        bHasCommand = false;
-        bVerbose = false;
-        bForce = false;
-        bRecursive = false;
-        bHelpRequested = false;
+	CommandLineProjectGenerator():
+        mode(PG_MODE_NONE),
+        bHasCommand(false),
+        bVerbose(false),
+        bForce(false),
+        bRecursive(false),
+        bHelpRequested(false)
+    {
         // assume our own platform unless it's set:
         targets.push_back( ofGetTargetPlatform() );
 	}
     
-	void initialize(Application& self){
+	void initialize(Application& self)
+    {
 		loadConfiguration(); // load default configuration files, if present
 		Application::initialize(self);
 	}
 	
-	void uninitialize(){
+	void uninitialize()
+    {
 		Application::uninitialize();
 	}
 	
-	void reinitialize(Application& self){
+	void reinitialize(Application& self)
+    {
 		Application::reinitialize(self);
 	}
 	
-	void defineOptions(OptionSet& options){
+	void defineOptions(OptionSet& options)
+    {
 		Application::defineOptions(options);
 
         
@@ -105,35 +103,35 @@ public:
                           .required(false)
                           .repeatable(false)
                           .noArgument()
-                          .callback(OptionCallback<commandLineProjectGenerator>(this, &commandLineProjectGenerator::handleOption)));
+                          .callback(OptionCallback<CommandLineProjectGenerator>(this, &CommandLineProjectGenerator::handleOption)));
         
 
 		options.addOption(
                           Option("help", "h", "")
                           .required(false)
                           .repeatable(false)
-                          .callback(OptionCallback<commandLineProjectGenerator>(this, &commandLineProjectGenerator::handleOption)));
+                          .callback(OptionCallback<CommandLineProjectGenerator>(this, &CommandLineProjectGenerator::handleOption)));
         
         options.addOption(
                           Option("create", "c", "create a project file if it doesn't exist")
                           .required(false)
                           .noArgument()
                           .repeatable(false)
-                          .callback(OptionCallback<commandLineProjectGenerator>(this, &commandLineProjectGenerator::handleOption)));
+                          .callback(OptionCallback<CommandLineProjectGenerator>(this, &CommandLineProjectGenerator::handleOption)));
         
         options.addOption(
                           Option("update", "u", "update a project file if it does exist")
                           .required(false)
                           .noArgument()
                           .repeatable(false)
-                          .callback(OptionCallback<commandLineProjectGenerator>(this, &commandLineProjectGenerator::handleOption)));
+                          .callback(OptionCallback<CommandLineProjectGenerator>(this, &CommandLineProjectGenerator::handleOption)));
         
         options.addOption(
                           Option("platforms", "x", "platform list")
                           .required(false)
                           .repeatable(false)
                           .argument("\"platform list\"")
-                          .callback(OptionCallback<commandLineProjectGenerator>(this, &commandLineProjectGenerator::handleOption)));
+                          .callback(OptionCallback<CommandLineProjectGenerator>(this, &CommandLineProjectGenerator::handleOption)));
         
         
         options.addOption(
@@ -141,42 +139,40 @@ public:
                           .required(false)
                           .repeatable(false)
                           .argument("\"addons list\"")
-                          .callback(OptionCallback<commandLineProjectGenerator>(this, &commandLineProjectGenerator::handleOption)));
+                          .callback(OptionCallback<CommandLineProjectGenerator>(this, &CommandLineProjectGenerator::handleOption)));
         
 		options.addOption(
                           Option("ofPath", "o", "openframeworks path")
                           .required(false)
                           .repeatable(false)
                           .argument("\"OF path\"")
-                          .callback(OptionCallback<commandLineProjectGenerator>(this, &commandLineProjectGenerator::handleOption)));
+                          .callback(OptionCallback<CommandLineProjectGenerator>(this, &CommandLineProjectGenerator::handleOption)));
         
 		options.addOption(
                           Option("projectPath", "p", "project path")
                           .required(false)
                           .repeatable(false)
                           .argument("\"project path\"")
-                          .callback(OptionCallback<commandLineProjectGenerator>(this, &commandLineProjectGenerator::handleOption)));
+                          .callback(OptionCallback<CommandLineProjectGenerator>(this, &CommandLineProjectGenerator::handleOption)));
         options.addOption(
                           Option("verbose", "v", "run verbose")
                           .required(false)
                           .repeatable(false)
                           .noArgument()
-                          .callback(OptionCallback<commandLineProjectGenerator>(this, &commandLineProjectGenerator::handleOption)));
+                          .callback(OptionCallback<CommandLineProjectGenerator>(this, &CommandLineProjectGenerator::handleOption)));
         
         options.addOption(
                           Option("dryrun", "d", "don't change files")
                           .required(false)
                           .repeatable(false)
                           .noArgument()
-                          .callback(OptionCallback<commandLineProjectGenerator>(this, &commandLineProjectGenerator::handleOption)));
+                          .callback(OptionCallback<CommandLineProjectGenerator>(this, &CommandLineProjectGenerator::handleOption)));
         
         
 	}
     
-    void handleOption(const std::string& name, const std::string& value){
-        
-        
-        
+    void handleOption(const std::string& name, const std::string& value)
+    {
         if (name == "help"){
             printHelp();
         } else if (name == "create"){
@@ -199,7 +195,8 @@ public:
     }
     
 
-	void printHelp(){
+	void printHelp()
+    {
         bHelpRequested = true;
         HelpFormatter helpFormatter(options());
         string header = "";
@@ -216,8 +213,8 @@ public:
     
 
     
-    void addPlatforms(string value){
-
+    void addPlatforms(const std::string& value)
+    {
         targets.clear();
         vector < string > platforms = ofSplitString(value, ",", true, true);
         
@@ -264,7 +261,7 @@ public:
         
         switch(targ){
             case OF_TARGET_OSX:
-                project = new xcodeProject;
+                project = new XcodeProject;
                 target = "osx";
                 break;
             case OF_TARGET_WINGCC:
@@ -272,11 +269,11 @@ public:
                 target = "win_cb";
                 break;
             case OF_TARGET_WINVS:
-                project = new visualStudioProject;
+                project = new VisualStudioProject;
                 target = "vs";
                 break;
             case OF_TARGET_IPHONE:
-                project = new xcodeProject;
+                project = new XcodeProject;
                 target = "ios";
                 break;
             case OF_TARGET_ANDROID:
@@ -549,4 +546,4 @@ public:
 
 
 
-POCO_APP_MAIN(commandLineProjectGenerator)
+POCO_APP_MAIN(CommandLineProjectGenerator)

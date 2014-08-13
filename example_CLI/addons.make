@@ -1,0 +1,2 @@
+ofxProjectGenerator
+ofxPugiXML
