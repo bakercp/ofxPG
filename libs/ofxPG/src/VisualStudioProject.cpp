@@ -319,7 +319,7 @@ void VisualStudioProject::addAddon(ofAddon & addon)
         }
     }
 
-    for(std::size_t i=0;i<(int)possibleReleaseOrDebugOnlyLibs.size();i++){
+    for(std::size_t i=0;i< possibleReleaseOrDebugOnlyLibs.size();i++){
          if(!Utils::isInVector(possibleReleaseOrDebugOnlyLibs[i], debugLibs) && !Utils::isInVector(possibleReleaseOrDebugOnlyLibs[i], releaseLibs)){
             ofLogVerbose() << "RELEASE ONLY LIBS FOUND " << possibleReleaseOrDebugOnlyLibs[i] << endl;
             debugLibs.push_back(possibleReleaseOrDebugOnlyLibs[i]);
@@ -327,17 +327,17 @@ void VisualStudioProject::addAddon(ofAddon & addon)
          }
     }
 
-    for(std::size_t i=0;i<(int)debugLibs.size();i++){
+    for(std::size_t i=0;i< debugLibs.size();i++){
         ofLogVerbose() << "adding addon debug libs: " << debugLibs[i];
         addLibrary(debugLibs[i], DEBUG_LIB);
     }
 
-    for(std::size_t i=0;i<(int)releaseLibs.size();i++){
+    for(std::size_t i=0;i< releaseLibs.size();i++){
         ofLogVerbose() << "adding addon release libs: " << releaseLibs[i];
         addLibrary(releaseLibs[i], RELEASE_LIB);
     }
 
-    for(std::size_t i=0;i<(int)addon.srcFiles.size(); i++){
+    for(std::size_t i=0;i< addon.srcFiles.size(); i++){
         ofLogVerbose() << "adding addon srcFiles: " << addon.srcFiles[i];
         addSrc(addon.srcFiles[i],addon.filesToFolders[addon.srcFiles[i]]);
     }
