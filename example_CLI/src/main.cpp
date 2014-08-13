@@ -1,8 +1,4 @@
-#include "ofMain.h"
-#include "ofApp.h"
-#include "ofAppGlutWindow.h"
-#include "ofAppNoWindow.h"
-
+#include "Poco/Path.h"
 #include "Poco/Util/Application.h"
 #include "Poco/Util/Option.h"
 #include "Poco/Util/OptionSet.h"
@@ -11,20 +7,8 @@
 #include "Poco/AutoPtr.h"
 #include <iostream>
 
-#include "CBLinuxProject.h"
-#include "CBWinProject.h"
-#include "VisualStudioProject.h"
-#include "XcodeProject.h"
-#include <Poco/Path.h>
-
-
-using Poco::Util::Option;
-using Poco::Util::OptionSet;
-using Poco::Util::HelpFormatter;
-using Poco::Util::AbstractConfiguration;
-using Poco::Util::OptionCallback;
-using Poco::AutoPtr;
-using Poco::Path;
+#include "ofMain.h"
+#include "ofxProjectGenerator.h"
 
 
 /*
@@ -63,7 +47,8 @@ public:
     bool bDryRun;                           // do dry run (useful for debugging recursive update)
     
     std::string target; // the current project target platform in string form (for finding templates)
-    BaseProject* project;
+
+    ofx::PG::BaseProject* project;
     
 	CommandLineProjectGenerator():
         mode(PG_MODE_NONE),
@@ -93,80 +78,80 @@ public:
 		Application::reinitialize(self);
 	}
 	
-	void defineOptions(OptionSet& options)
+	void defineOptions(Poco::Util::OptionSet& options)
     {
 		Application::defineOptions(options);
 
         
         options.addOption(
-                          Option("recursive", "r", "update recursively (applies only to update)")
+                          Poco::Util::Option("recursive", "r", "update recursively (applies only to update)")
                           .required(false)
                           .repeatable(false)
                           .noArgument()
-                          .callback(OptionCallback<CommandLineProjectGenerator>(this, &CommandLineProjectGenerator::handleOption)));
+                          .callback(Poco::Util::OptionCallback<CommandLineProjectGenerator>(this, &CommandLineProjectGenerator::handleOption)));
         
 
 		options.addOption(
-                          Option("help", "h", "")
+                          Poco::Util::Option("help", "h", "")
                           .required(false)
                           .repeatable(false)
-                          .callback(OptionCallback<CommandLineProjectGenerator>(this, &CommandLineProjectGenerator::handleOption)));
+                          .callback(Poco::Util::OptionCallback<CommandLineProjectGenerator>(this, &CommandLineProjectGenerator::handleOption)));
         
         options.addOption(
-                          Option("create", "c", "create a project file if it doesn't exist")
-                          .required(false)
-                          .noArgument()
-                          .repeatable(false)
-                          .callback(OptionCallback<CommandLineProjectGenerator>(this, &CommandLineProjectGenerator::handleOption)));
-        
-        options.addOption(
-                          Option("update", "u", "update a project file if it does exist")
+                          Poco::Util::Option("create", "c", "create a project file if it doesn't exist")
                           .required(false)
                           .noArgument()
                           .repeatable(false)
-                          .callback(OptionCallback<CommandLineProjectGenerator>(this, &CommandLineProjectGenerator::handleOption)));
+                          .callback(Poco::Util::OptionCallback<CommandLineProjectGenerator>(this, &CommandLineProjectGenerator::handleOption)));
         
         options.addOption(
-                          Option("platforms", "x", "platform list")
+                          Poco::Util::Option("update", "u", "update a project file if it does exist")
+                          .required(false)
+                          .noArgument()
+                          .repeatable(false)
+                          .callback(Poco::Util::OptionCallback<CommandLineProjectGenerator>(this, &CommandLineProjectGenerator::handleOption)));
+        
+        options.addOption(
+                          Poco::Util::Option("platforms", "x", "platform list")
                           .required(false)
                           .repeatable(false)
                           .argument("\"platform list\"")
-                          .callback(OptionCallback<CommandLineProjectGenerator>(this, &CommandLineProjectGenerator::handleOption)));
+                          .callback(Poco::Util::OptionCallback<CommandLineProjectGenerator>(this, &CommandLineProjectGenerator::handleOption)));
         
         
         options.addOption(
-                          Option("addons", "a", "addons list")
+                          Poco::Util::Option("addons", "a", "addons list")
                           .required(false)
                           .repeatable(false)
                           .argument("\"addons list\"")
-                          .callback(OptionCallback<CommandLineProjectGenerator>(this, &CommandLineProjectGenerator::handleOption)));
+                          .callback(Poco::Util::OptionCallback<CommandLineProjectGenerator>(this, &CommandLineProjectGenerator::handleOption)));
         
 		options.addOption(
-                          Option("ofPath", "o", "openframeworks path")
+                          Poco::Util::Option("ofPath", "o", "openframeworks path")
                           .required(false)
                           .repeatable(false)
                           .argument("\"OF path\"")
-                          .callback(OptionCallback<CommandLineProjectGenerator>(this, &CommandLineProjectGenerator::handleOption)));
+                          .callback(Poco::Util::OptionCallback<CommandLineProjectGenerator>(this, &CommandLineProjectGenerator::handleOption)));
         
 		options.addOption(
-                          Option("projectPath", "p", "project path")
+                          Poco::Util::Option("projectPath", "p", "project path")
                           .required(false)
                           .repeatable(false)
                           .argument("\"project path\"")
-                          .callback(OptionCallback<CommandLineProjectGenerator>(this, &CommandLineProjectGenerator::handleOption)));
+                          .callback(Poco::Util::OptionCallback<CommandLineProjectGenerator>(this, &CommandLineProjectGenerator::handleOption)));
         options.addOption(
-                          Option("verbose", "v", "run verbose")
+                          Poco::Util::Option("verbose", "v", "run verbose")
                           .required(false)
                           .repeatable(false)
                           .noArgument()
-                          .callback(OptionCallback<CommandLineProjectGenerator>(this, &CommandLineProjectGenerator::handleOption)));
+                          .callback(Poco::Util::OptionCallback<CommandLineProjectGenerator>(this, &CommandLineProjectGenerator::handleOption)));
         
         options.addOption(
-                          Option("dryrun", "d", "don't change files")
+                          Poco::Util::Option("dryrun", "d", "don't change files")
                           .required(false)
                           .repeatable(false)
                           .noArgument()
-                          .callback(OptionCallback<CommandLineProjectGenerator>(this, &CommandLineProjectGenerator::handleOption)));
+                          .callback(Poco::Util::OptionCallback<CommandLineProjectGenerator>(this, &CommandLineProjectGenerator::handleOption)));
         
         
 	}
@@ -198,7 +183,7 @@ public:
 	void printHelp()
     {
         bHelpRequested = true;
-        HelpFormatter helpFormatter(options());
+        Poco::Util::HelpFormatter helpFormatter(options());
         string header = "";
         header += "\nOPTIONS:\n";
         header += "A command line project generator\n";
@@ -261,37 +246,37 @@ public:
         
         switch(targ){
             case OF_TARGET_OSX:
-                project = new XcodeProject;
+                project = new ofx::PG::XcodeProject;
                 target = "osx";
                 break;
             case OF_TARGET_WINGCC:
-                project = new CBWinProject;
+                project = new ofx::PG::CBWinProject;
                 target = "win_cb";
                 break;
             case OF_TARGET_WINVS:
-                project = new VisualStudioProject;
+                project = new ofx::PG::VisualStudioProject;
                 target = "vs";
                 break;
             case OF_TARGET_IPHONE:
-                project = new XcodeProject;
+                project = new ofx::PG::XcodeProject;
                 target = "ios";
                 break;
             case OF_TARGET_ANDROID:
                 break;
             case OF_TARGET_LINUX:
-                project = new CBLinuxProject;
+                project = new ofx::PG::CBLinuxProject;
                 target = "linux";
                 break;
             case OF_TARGET_LINUX64:
-                project = new CBLinuxProject;
+                project = new ofx::PG::CBLinuxProject;
                 target = "linux64";
                 break;
             case OF_TARGET_LINUXARMV6L:
-                project = new CBLinuxProject;
+                project = new ofx::PG::CBLinuxProject;
                 target = "linuxarmv6l";
                 break;
             case OF_TARGET_LINUXARMV7L:
-                project = new CBLinuxProject;
+                project = new ofx::PG::CBLinuxProject;
                 target = "linuxarmv7l";
                 break;
         }
@@ -302,7 +287,7 @@ public:
 		
         cout << "setting root of OF to " << value << endl;
         
-        setOFRoot(value);
+        ofx::PG::Utils::setOFRoot(value);
 	} 
     
     void handleProjectPath(const std::string& name, const std::string& value){
@@ -407,15 +392,15 @@ public:
         ofFile file(path+ "addons.make");
         
         if (file.exists()){
-            parseAddonsDotMake(path + "addons.make", addons);
+            ofx::PG::Utils::parseAddonsDotMake(path + "addons.make", addons);
         }
         
         for (int i = 0; i < (int)addons.size(); i++){
-            ofAddon addon;
-            addon.pathToOF = getOFRelPath(path);
-            addon.fromFS(ofFilePath::join(ofFilePath::join(getOFRoot(), "addons"), addons[i]),target);
+            ofx::PG::ofAddon addon;
+            addon.pathToOF = ofx::PG::Utils::getOFRelPath(path);
+            addon.fromFS(ofFilePath::join(ofFilePath::join(ofx::PG::Utils::getOFRoot(), "addons"), addons[i]),target);
             
-            ofLog(OF_LOG_NOTICE)  << "parsing addon " << ofFilePath::join(getOFRoot(), "addons");
+            ofLog(OF_LOG_NOTICE)  << "parsing addon " << ofFilePath::join(ofx::PG::Utils::getOFRoot(), "addons");
             
             if (!bDryRun) project->addAddon(addon);
         }
@@ -452,9 +437,9 @@ public:
             // so things like ../ can work
             // see http://www.appinf.com/docs/poco/Poco.Path.html
         
-            Path cwd    = Path::current();                  // get the current path
+            Poco::Path cwd    = Poco::Path::current();                  // get the current path
             ofPath      = cwd.resolve(ofPath).toString();   // resolve ofPath vs that.
-            Path resolvedPath = Path(ofPath).absolute();    // make that new path absolute
+            Poco::Path resolvedPath = Poco::Path(ofPath).absolute();    // make that new path absolute
             ofPath = resolvedPath.toString();
             
             if (!isGoodOFPath(ofPath)){
@@ -462,7 +447,7 @@ public:
             }
             
             ofLog(OF_LOG_NOTICE) << "setting OF path to: " << ofPath;
-            setOFRoot(ofPath);
+            ofx::PG::Utils::setOFRoot(ofPath);
         }
         
         // todo : check ofPath
@@ -474,9 +459,9 @@ public:
             return Application::EXIT_OK;
         } else {
             
-            Path cwd            = Path::current();                      // get the current path
+            Poco::Path cwd            = Poco::Path::current();                      // get the current path
             projectPath         = cwd.resolve(projectPath).toString();  // resolve projectPath vs that.
-            Path resolvedPath   = Path(projectPath).absolute();         // use absolute version of this path
+            Poco::Path resolvedPath   = Poco::Path(projectPath).absolute();         // use absolute version of this path
             projectPath = resolvedPath.toString();
             
             if (!isGoodOFPath(ofPath)){
@@ -488,9 +473,10 @@ public:
         }
     
         
-        if (mode == PG_MODE_CREATE){
-            
-            for(int i = 0; i < (int)targets.size(); i++){
+        if (mode == PG_MODE_CREATE)
+        {
+            for(int i = 0; i < (int)targets.size(); i++)
+            {
                 setupForTarget(targets[i]);
                 
                 ofLog(OF_LOG_NOTICE) << "setting up a new project";
@@ -502,11 +488,11 @@ public:
                 
                 for (int j = 0; j < (int)addons.size(); j++){
                     
-                    ofAddon addon;
+                    ofx::PG::ofAddon addon;
                     
-                    ofLog(OF_LOG_NOTICE) << "parsing addon: " << ofFilePath::join(getOFRoot(), "addons");
+                    ofLog(OF_LOG_NOTICE) << "parsing addon: " << ofFilePath::join(ofx::PG::Utils::getOFRoot(), "addons");
                     
-                    if (!bDryRun) addon.fromFS(ofFilePath::join(ofFilePath::join(getOFRoot(), "addons"), addons[j]),target);
+                    if (!bDryRun) addon.fromFS(ofFilePath::join(ofFilePath::join(ofx::PG::Utils::getOFRoot(), "addons"), addons[j]),target);
                     if (!bDryRun) project->addAddon(addon);
                 }
                 if (!bDryRun) project->save(false);
@@ -538,12 +524,5 @@ public:
 	}
 
 };
-
-
-
-
-
-
-
 
 POCO_APP_MAIN(CommandLineProjectGenerator)

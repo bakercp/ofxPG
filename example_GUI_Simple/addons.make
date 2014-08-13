@@ -1,0 +1,4 @@
+ofxPG
+ofxPugiXML
+ofxGui
+ofxXmlSettings

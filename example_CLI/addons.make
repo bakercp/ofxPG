@@ -1,2 +1,2 @@
-ofxProjectGenerator
+ofxPG
 ofxPugiXML
