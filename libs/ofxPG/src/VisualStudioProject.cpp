@@ -42,7 +42,7 @@ bool VisualStudioProject::createProjectFile()
 
         string relRootWindows = relRoot;
         // let's make it windows friendly:
-        for(int i = 0; i < relRootWindows.length(); i++) {
+        for(std::size_t i = 0; i < relRootWindows.length(); i++) {
             if( relRootWindows[i] == '/' )
                 relRootWindows[i] = '\\';
         }
@@ -125,7 +125,7 @@ void VisualStudioProject::addSrc(const std::string&  _srcFile, const std::string
 
 	vector < string > folderSubNames = ofSplitString(folder, "\\");
 	string folderName = "";
-	for (int i = 0; i < folderSubNames.size(); i++){
+	for (std::size_t i = 0; i < folderSubNames.size(); i++){
 		if (i != 0) folderName += "\\";
 		folderName += folderSubNames[i];
 		appendFilter(folderName);
@@ -165,7 +165,7 @@ void VisualStudioProject::addInclude(const std::string& _includeName){
         string includes = node.node().first_child().value();
         vector < string > strings = ofSplitString(includes, ";");
         bool bAdd = true;
-        for (int i = 0; i < (int)strings.size(); i++){
+        for (std::size_t i = 0; i < strings.size(); i++){
             if (strings[i].compare(includeName) == 0){
                 bAdd = false;
             }
@@ -200,7 +200,7 @@ void VisualStudioProject::addLibrary(const string&  _libraryName, LibType libTyp
         string includes = node.node().first_child().value();
         vector < string > strings = ofSplitString(includes, ";");
         bool bAdd = true;
-        for (int i = 0; i < (int)strings.size(); i++){
+        for (std::size_t i = 0; i < strings.size(); i++){
             if (strings[i].compare(libFolder) == 0){
                 bAdd = false;
             }
@@ -230,7 +230,7 @@ void VisualStudioProject::addLibrary(const string&  _libraryName, LibType libTyp
         string includes = node.node().first_child().value();
         vector < string > strings = ofSplitString(includes, ";");
         bool bAdd = true;
-        for (int i = 0; i < (int)strings.size(); i++){
+        for (std::size_t i = 0; i < strings.size(); i++){
             if (strings[i].compare(libName) == 0){
                 bAdd = false;
             }
@@ -249,13 +249,13 @@ void VisualStudioProject::addLibrary(const string&  _libraryName, LibType libTyp
 
 void VisualStudioProject::addAddon(ofAddon & addon)
 {
-    for(int i=0;i<(int)addons.size();i++){
+    for (std::size_t i=0; i < addons.size();i++){
 		if(addons[i].name==addon.name) return;
 	}
 
 	addons.push_back(addon);
 
-    for(int i=0;i<(int)addon.includePaths.size();i++){
+    for(std::size_t i=0;i< addon.includePaths.size();i++){
         ofLogVerbose() << "adding addon include path: " << addon.includePaths[i];
         addInclude(addon.includePaths[i]);
     }
@@ -273,7 +273,7 @@ void VisualStudioProject::addAddon(ofAddon & addon)
 
     vector <string> possibleReleaseOrDebugOnlyLibs;
 
-    for(int i = 0; i < addon.libs.size(); i++){
+    for(std::size_t i = 0; i < addon.libs.size(); i++){
 
         size_t found = 0;
 
@@ -290,7 +290,7 @@ void VisualStudioProject::addAddon(ofAddon & addon)
         string firstPart = libName.substr(0,found);
 
         // check this lib name against every other lib name
-        for(int j = 0; j < addon.libs.size(); j++){
+        for(std::size_t j = 0; j < addon.libs.size(); j++){
             // check if this lib name is contained within another lib name and is not the same name
             if(ofIsStringInString(addon.libs[j], firstPart) && addon.libs[i] != addon.libs[j]){
                 // if it is then add respecitive libs to debug and release
@@ -319,7 +319,7 @@ void VisualStudioProject::addAddon(ofAddon & addon)
         }
     }
 
-    for(int i=0;i<(int)possibleReleaseOrDebugOnlyLibs.size();i++){
+    for(std::size_t i=0;i<(int)possibleReleaseOrDebugOnlyLibs.size();i++){
          if(!Utils::isInVector(possibleReleaseOrDebugOnlyLibs[i], debugLibs) && !Utils::isInVector(possibleReleaseOrDebugOnlyLibs[i], releaseLibs)){
             ofLogVerbose() << "RELEASE ONLY LIBS FOUND " << possibleReleaseOrDebugOnlyLibs[i] << endl;
             debugLibs.push_back(possibleReleaseOrDebugOnlyLibs[i]);
@@ -327,17 +327,17 @@ void VisualStudioProject::addAddon(ofAddon & addon)
          }
     }
 
-    for(int i=0;i<(int)debugLibs.size();i++){
+    for(std::size_t i=0;i<(int)debugLibs.size();i++){
         ofLogVerbose() << "adding addon debug libs: " << debugLibs[i];
         addLibrary(debugLibs[i], DEBUG_LIB);
     }
 
-    for(int i=0;i<(int)releaseLibs.size();i++){
+    for(std::size_t i=0;i<(int)releaseLibs.size();i++){
         ofLogVerbose() << "adding addon release libs: " << releaseLibs[i];
         addLibrary(releaseLibs[i], RELEASE_LIB);
     }
 
-    for(int i=0;i<(int)addon.srcFiles.size(); i++){
+    for(std::size_t i=0;i<(int)addon.srcFiles.size(); i++){
         ofLogVerbose() << "adding addon srcFiles: " << addon.srcFiles[i];
         addSrc(addon.srcFiles[i],addon.filesToFolders[addon.srcFiles[i]]);
     }
