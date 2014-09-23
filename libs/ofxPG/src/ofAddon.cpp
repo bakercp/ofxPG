@@ -310,7 +310,7 @@ void ofAddon::fromFS(string path, string platform){
 	addonPath = ofFilePath::join(PGUtils::getAddonsRoot(),name);
 
     string filePath = path + "/src";
-    string ofRootPath = ofFilePath::addTrailingSlash(PGUtils::getOFRoot()); //we need to add a trailing slash for the erase to work properly
+    string ofRootPath = ofFilePath::addTrailingSlash(PGUtils::getOFRoot().toString()); //we need to add a trailing slash for the erase to work properly
 
     ofLogVerbose() << "in fromFS, trying src " << filePath;
 

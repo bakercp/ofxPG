@@ -21,11 +21,11 @@ bool VisualStudioProject::createProjectFile()
     string solution = ofFilePath::join(projectPath,projectName + ".sln");
 	string filters = ofFilePath::join(projectPath, projectName + ".vcxproj.filters");
 
-    ofFile::copyFromTo(ofFilePath::join(templatePath,"emptyExample.vcxproj"),project,false, true);
-    ofFile::copyFromTo(ofFilePath::join(templatePath,"emptyExample.vcxproj.user"),user, false, true);
-    ofFile::copyFromTo(ofFilePath::join(templatePath,"emptyExample.sln"),solution, false, true);
-	ofFile::copyFromTo(ofFilePath::join(templatePath,"emptyExample.vcxproj.filters"),filters, false, true);
-	ofFile::copyFromTo(ofFilePath::join(templatePath,"icon.rc"), projectPath + "icon.rc", false, true);
+    ofFile::copyFromTo(ofFilePath::join(templatePath.toString(),"emptyExample.vcxproj"),project,false, true);
+    ofFile::copyFromTo(ofFilePath::join(templatePath.toString(),"emptyExample.vcxproj.user"),user, false, true);
+    ofFile::copyFromTo(ofFilePath::join(templatePath.toString(),"emptyExample.sln"),solution, false, true);
+	ofFile::copyFromTo(ofFilePath::join(templatePath.toString(),"emptyExample.vcxproj.filters"),filters, false, true);
+	ofFile::copyFromTo(ofFilePath::join(templatePath.toString(),"icon.rc"), projectPath + "icon.rc", false, true);
 
 	ofFile filterFile(filters);
 	string temp = filterFile.readToBuffer();

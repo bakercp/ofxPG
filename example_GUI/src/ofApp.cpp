@@ -2,14 +2,23 @@
 #include "ofx/PG/PGUtils.h"
 
 
+ofApp::ofApp():
+    project(0),
+    buildAllExamples(false)
+{
+}
+
+
+ofApp::~ofApp()
+{
+}
+
+
 void ofApp::setup()
 {
-
     ofSetLogLevel(OF_LOG_VERBOSE);
 
-	project = 0;
-
-	while(!ofx::PG::PGUtils::checkConfigExists())
+	while (!ofx::PG::PGUtils::checkConfigExists())
     {
 		ofx::PG::PGUtils::askOFRoot();
 	}
@@ -46,7 +55,7 @@ void ofApp::setup()
                 {
 					ofx::PG::ofAddon addon;
 
-					addon.fromFS(ofFilePath::join(ofFilePath::join(ofx::PG::PGUtils::getOFRoot(), "addons"), addons[i]),target);
+					addon.fromFS(ofFilePath::join(ofFilePath::join(ofx::PG::PGUtils::getOFRoot().toString(), "addons"), addons[i]),target);
 
                     project->addAddon(addon);
 				}
@@ -61,7 +70,7 @@ void ofApp::setup()
 #ifndef COMMAND_LINE_ONLY
     panelAddons.setup();
 
-    ofDirectory addons(ofFilePath::join(ofx::PG::PGUtils::getOFRoot(),"addons"));
+    ofDirectory addons(ofFilePath::join(ofx::PG::PGUtils::getOFRoot().toString(), "addons"));
 
     addons.listDir();
 
@@ -191,7 +200,7 @@ void ofApp::generateExamples()
 {
     ofDirectory dir;
 
-    string examplesPath = ofFilePath::join(ofx::PG::PGUtils::getOFRoot(), "examples");
+    string examplesPath = ofFilePath::join(ofx::PG::PGUtils::getOFRoot().toString(), "examples");
 
 	ofLogNotice() << "Generating examples (from: " << examplesPath << ")";
 
@@ -241,7 +250,7 @@ void ofApp::generateExamples()
             {
                 ofx::PG::ofAddon addon;
                 addon.pathToOF = ofx::PG::PGUtils::getOFRelPath(subdir.getPath(j));
-                addon.fromFS(ofFilePath::join(ofFilePath::join(ofx::PG::PGUtils::getOFRoot(), "addons"), addons[i]),target);
+                addon.fromFS(ofFilePath::join(ofFilePath::join(ofx::PG::PGUtils::getOFRoot().toString(), "addons"), addons[i]),target);
                 project->addAddon(addon);
             }
             project->save(false);
@@ -287,15 +296,16 @@ ofFileDialogResult ofApp::makeNewProjectViaDialog()
         if(project->create(res.filePath))
         {
             vector<string> addonsToggles = panelAddons.getControlNames();
+            
             for (std::size_t i = 0; i < addonsToggles.size(); ++i)
             {
                 ofxToggle toggle = panelAddons.getToggle(addonsToggles[i]);
 
-                if(toggle)
+                if (toggle)
                 {
                     ofx::PG::ofAddon addon;
                     addon.pathToOF = ofx::PG::PGUtils::getOFRelPath(res.filePath);
-                    addon.fromFS(ofFilePath::join(ofFilePath::join(ofx::PG::PGUtils::getOFRoot(), "addons"), addonsToggles[i]),target);
+                    addon.fromFS(ofFilePath::join(ofFilePath::join(ofx::PG::PGUtils::getOFRoot().toString(), "addons"), addonsToggles[i]),target);
                     printf("adding %s addons \n", addonsToggles[i].c_str());
                     project->addAddon(addon);
 
@@ -317,42 +327,48 @@ ofFileDialogResult ofApp::updateProjectViaDialog(){
     if (res.fileName == "" || res.filePath == "") return res;
     //base.pushDirectory(res.fileName);   // somehow an extra things here helps?
 
-    vector <int> targetsToMake;
-	if( osxToggle )		targetsToMake.push_back(OF_TARGET_OSX);
-	if( iosToggle )		targetsToMake.push_back(OF_TARGET_IPHONE);
-	if( wincbToggle )	targetsToMake.push_back(OF_TARGET_WINGCC);
-	if( winvsToggle )	targetsToMake.push_back(OF_TARGET_WINVS);
-	if( linuxcbToggle )	targetsToMake.push_back(OF_TARGET_LINUX);
-	if( linux64cbToggle )	targetsToMake.push_back(OF_TARGET_LINUX64);
-	if( linuxarmv6lcbToggle )	targetsToMake.push_back(OF_TARGET_LINUXARMV6L);
-	if( linuxarmv7lcbToggle )	targetsToMake.push_back(OF_TARGET_LINUXARMV7L);
+    vector<int> targetsToMake;
+	if ( osxToggle )		targetsToMake.push_back(OF_TARGET_OSX);
+	if ( iosToggle )		targetsToMake.push_back(OF_TARGET_IPHONE);
+	if ( wincbToggle )	targetsToMake.push_back(OF_TARGET_WINGCC);
+	if ( winvsToggle )	targetsToMake.push_back(OF_TARGET_WINVS);
+	if ( linuxcbToggle )	targetsToMake.push_back(OF_TARGET_LINUX);
+	if ( linux64cbToggle )	targetsToMake.push_back(OF_TARGET_LINUX64);
+	if ( linuxarmv6lcbToggle )	targetsToMake.push_back(OF_TARGET_LINUXARMV6L);
+	if ( linuxarmv7lcbToggle )	targetsToMake.push_back(OF_TARGET_LINUXARMV7L);
 
-	if( targetsToMake.size() == 0 )
+	if (targetsToMake.empty())
     {
 		cout << "Error: updateProjectViaDialog - must specifiy a project to generate " <<endl;
 		ofSystemAlertDialog("Error: updateProjectViaDialog - must specifiy a project platform to generate");
 	}
 
-	for(std::size_t i = 0; i < targetsToMake.size(); ++i)
+	for (std::size_t i = 0; i < targetsToMake.size(); ++i)
     {
 		setupForTarget(targetsToMake[i]);
+
         project->setup(target);
         project->create(res.filePath);
+
         vector<string> addonsToggles = panelAddons.getControlNames();
-        for (int i = 0; i < (int)addonsToggles.size(); i++){
+
+        for (std::size_t i = 0; i < addonsToggles.size(); ++i)
+        {
             ofxToggle toggle = panelAddons.getToggle(addonsToggles[i]);
             // TODO: make this remove existing addons that are unchecked????
             // probably requires a more complex logic chain: loadProject
             // (ticks the addons) and then you can untick etc???
-            if(toggle){
+            if (toggle)
+            {
                 ofx::PG::ofAddon addon;
                 addon.pathToOF = ofx::PG::PGUtils::getOFRelPath(res.filePath);
-                addon.fromFS(ofFilePath::join(ofFilePath::join(ofx::PG::PGUtils::getOFRoot(), "addons"), addonsToggles[i]),target);
+                addon.fromFS(ofFilePath::join(ofFilePath::join(ofx::PG::PGUtils::getOFRoot().toString(), "addons"), addonsToggles[i]),target);
                 printf("adding %s addons \n", addonsToggles[i].c_str());
                 project->addAddon(addon);
 
             }
         }
+
         project->save(true);
 	}
 
@@ -445,7 +461,7 @@ void ofApp::setupDrawableOFPath()
 {
 
 #ifndef COMMAND_LINE_ONLY
-	vector<string> subdirs = ofSplitString("OF path: " + ofx::PG::PGUtils::getOFRoot(), "/");
+	vector<string> subdirs = ofSplitString("OF path: " + ofx::PG::PGUtils::getOFRoot().toString(), "/");
 	int textLength = 0;
 	int padding = 5;
 	string path = "";

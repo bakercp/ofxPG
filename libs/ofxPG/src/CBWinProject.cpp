@@ -20,10 +20,10 @@ bool CBWinProject::createProjectFile()
     string workspace = projectPath + projectName + ".workspace";
 
 
-	ofFile::copyFromTo(ofFilePath::join(templatePath,"emptyExample.cbp"),project, false, true);
+	ofFile::copyFromTo(ofFilePath::join(templatePath.toString(),"emptyExample.cbp"),project, false, true);
 
-	ofFile::copyFromTo(ofFilePath::join(templatePath,"emptyExample.workspace"),workspace, false, true);
-	ofFile::copyFromTo(ofFilePath::join(templatePath,"icon.rc"), projectPath + "icon.rc", false, true);
+	ofFile::copyFromTo(ofFilePath::join(templatePath.toString(),"emptyExample.workspace"),workspace, false, true);
+	ofFile::copyFromTo(ofFilePath::join(templatePath.toString(),"icon.rc"), projectPath + "icon.rc", false, true);
 
     //let's do some renaming:
     string relRoot = PGUtils::getOFRelPath(ofFilePath::removeTrailingSlash(projectPath));

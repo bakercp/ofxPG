@@ -14,7 +14,12 @@ BaseProject::BaseProject(): bLoaded(false)
 void BaseProject::setup(const std::string& _target)
 {
     target = _target;
-    templatePath = ofFilePath::join(PGUtils::getOFRoot(),"scripts/" + target + "/template/");
+
+    templatePath = PGUtils::getOFRoot();
+    templatePath.pushDirectory("scripts");
+    templatePath.pushDirectory(target);
+    templatePath.pushDirectory("template");
+
     setup(); // call the inherited class setup(), now that target is set.
 }
 
@@ -34,9 +39,27 @@ bool BaseProject::create(const std::string& path)
     }
     else
     {
-        ofDirectory project(projectPath);
-        ofFile::copyFromTo(ofFilePath::join(templatePath,"src"),ofFilePath::join(projectPath,"src"));
-        ofFile::copyFromTo(ofFilePath::join(templatePath,"bin"),ofFilePath::join(projectPath,"bin"));
+        Poco::Path templateSrcPath(templatePath);
+        templateSrcPath.pushDirectory("src");
+
+        Poco::Path templateBinPath(templatePath);
+        templateBinPath.pushDirectory("bin");
+
+        Poco::Path projectSrcPath(projectPath);
+        projectSrcPath.pushDirectory("src");
+
+        Poco::Path projectBinPath(projectPath);
+        projectBinPath.pushDirectory("bin");
+
+        Poco::File templateSrc(templateSrcPath);
+        Poco::File templateBin(templateBinPath);
+
+        templateSrc.copyTo(projectSrcPath.toString());
+        templateBin.copyTo(projectBinPath.toString());
+
+//        ofFile::copyFromTo(ofFilePath::join(templatePath,"src"),ofFilePath::join(projectPath,"src"));
+//
+//        ofFile::copyFromTo(ofFilePath::join(templatePath,"bin"),ofFilePath::join(projectPath,"bin"));
     }
 
     
@@ -107,14 +130,18 @@ bool BaseProject::create(const std::string& path)
 
         paths.sort();
         paths.unique();
-        for (list<string>::iterator it=paths.begin(); it!=paths.end(); ++it){
+
+        for (list<string>::iterator it=paths.begin(); it!=paths.end(); ++it)
+        {
             includePaths.push_back(*it);
         }
 
-        for (int i = 0; i < includePaths.size(); i++){
+        for (int i = 0; i < includePaths.size(); i++)
+        {
             addInclude(includePaths[i]);
         }
     }
+    
     return true;
 }
 
@@ -178,7 +205,7 @@ void BaseProject::parseAddons()
     {
 		ofAddon addon;
 		addon.pathToOF = PGUtils::getOFRelPath(projectPath);
-		addon.fromFS(ofFilePath::join(ofFilePath::join(PGUtils::getOFRoot(), "addons"),
+		addon.fromFS(ofFilePath::join(ofFilePath::join(PGUtils::getOFRoot().toString(), "addons"),
                                       addonsMakeMem.getNextLine()),
                                       target);
 		addAddon(addon);

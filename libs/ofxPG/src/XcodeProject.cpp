@@ -191,13 +191,13 @@ void XcodeProject::saveScheme()
 
     cout << "schemeToD:" << schemeToD << endl;
 
-    ofFile::copyFromTo(templatePath + "emptyExample.xcodeproj/xcshareddata/xcschemes/emptyExample Debug.xcscheme", schemeToD);
+    ofFile::copyFromTo(templatePath.toString() + "emptyExample.xcodeproj/xcshareddata/xcschemes/emptyExample Debug.xcscheme", schemeToD);
 
 	string schemeToR = projectPath  + projectName + ".xcodeproj" + "/xcshareddata/xcschemes/" + projectName + " Release.xcscheme";
 
     cout << "schemeToR:" << schemeToR << endl;
 
-    ofFile::copyFromTo(templatePath + "emptyExample.xcodeproj/xcshareddata/xcschemes/emptyExample Release.xcscheme", schemeToR);
+    ofFile::copyFromTo(templatePath.toString() + "emptyExample.xcodeproj/xcshareddata/xcschemes/emptyExample Release.xcscheme", schemeToR);
 	
     PGUtils::findandreplaceInTexfile(schemeToD, "emptyExample", projectName);
 
@@ -232,7 +232,7 @@ void XcodeProject::saveWorkspaceXML(){
 
     ofDirectory::createDirectory(workspaceFolder, false, true);
 
-    ofFile::copyFromTo(templatePath + "/emptyExample.xcodeproj/project.xcworkspace/contents.xcworkspacedata", xcodeProjectWorkspace);
+    ofFile::copyFromTo(templatePath.toString() + "/emptyExample.xcodeproj/project.xcworkspace/contents.xcworkspacedata", xcodeProjectWorkspace);
 
     PGUtils::findandreplaceInTexfile(xcodeProjectWorkspace, "PROJECTNAME", projectName);
 
@@ -241,43 +241,48 @@ void XcodeProject::saveWorkspaceXML(){
 void XcodeProject::saveMakefile()
 {
     std::string makefile = ofFilePath::join(projectPath,"Makefile");
-    ofFile::copyFromTo(templatePath + "Makefile", makefile, true, true);
+    ofFile::copyFromTo(templatePath.toString() + "Makefile", makefile, true, true);
 
     std::string configmake = ofFilePath::join(projectPath,"config.make");
-    ofFile::copyFromTo(templatePath + "config.make", configmake, true, true);
+    ofFile::copyFromTo(templatePath.toString() + "config.make", configmake, true, true);
 }
 
 
-bool XcodeProject::createProjectFile(){
+bool XcodeProject::createProjectFile()
+{
     // todo: some error checking.
 
-    string xcodeProject = ofFilePath::join(projectPath , projectName + ".xcodeproj");
+    Poco::Path xcodeProjectPath(projectPath, projectName + ".xcodeproj");
 
-    std::cout << "XcodeProject: " << xcodeProject << endl;
+    std::cout << "XcodeProject: " << xcodeProjectPath.toString() << endl;
 
 
-    ofDirectory xcodeDir(xcodeProject);
+    ofDirectory xcodeDir(xcodeProjectPath.toString());
 
     if (xcodeDir.exists())
     {
-        ofDirectory::removeDirectory(xcodeProject, true);
+        ofDirectory::removeDirectory(xcodeProjectPath.toString(), true);
     }
-    
+
     //ofDirectory xcodeDir(xcodeProject);
 	xcodeDir.create(true);
 	xcodeDir.close();
-	
-    ofFile::copyFromTo(ofFilePath::join(templatePath,"emptyExample.xcodeproj/project.pbxproj"),
-                       ofFilePath::join(xcodeProject, "project.pbxproj"), true, true);
 
-    ofFile::copyFromTo(ofFilePath::join(templatePath,"Project.xcconfig"),projectPath, true, true);
+    std::string projectTemplate = ofFilePath::join(templatePath.toString(),"emptyExample.xcodeproj/project.pbxproj");
+
+    std::cout << "projectTemplate: " << projectTemplate << endl;
+
+    ofFile::copyFromTo(projectTemplate,
+                       ofFilePath::join(xcodeProjectPath.toString(), "project.pbxproj"), true, true);
+
+    ofFile::copyFromTo(ofFilePath::join(templatePath.toString(),"Project.xcconfig"),projectPath, true, true);
 
     
     
     
     if( target == "osx" )
     {
-        ofFile::copyFromTo(ofFilePath::join(templatePath,"openFrameworks-Info.plist"),projectPath, true, true);
+        ofFile::copyFromTo(ofFilePath::join(templatePath.toString(),"openFrameworks-Info.plist"),projectPath, true, true);
 	
         
 		ofDirectory binDirectory(ofFilePath::join(projectPath, "bin"));
@@ -294,8 +299,8 @@ bool XcodeProject::createProjectFile(){
     }
     else
     {
-        ofFile::copyFromTo(ofFilePath::join(templatePath,"ofxiOS-Info.plist"),projectPath, true, true);
-        ofFile::copyFromTo(ofFilePath::join(templatePath,"ofxiOS_Prefix.pch"),projectPath, true, true);
+        ofFile::copyFromTo(ofFilePath::join(templatePath.toString(),"ofxiOS-Info.plist"),projectPath, true, true);
+        ofFile::copyFromTo(ofFilePath::join(templatePath.toString(),"ofxiOS_Prefix.pch"),projectPath, true, true);
 
 		ofDirectory binDirectory(ofFilePath::join(projectPath, "bin"));
 		if (!binDirectory.exists()){
@@ -308,17 +313,17 @@ bool XcodeProject::createProjectFile(){
 				dataDirectory.create(false);
 			}
 		}
-        ofFile::copyFromTo(ofFilePath::join(templatePath,"bin/data/Default-568h@2x~iphone.png"),projectPath + "/bin/data/Default-568h@2x~iphone.png", true, true);
-		ofFile::copyFromTo(ofFilePath::join(templatePath,"bin/data/Default.png"),projectPath + "/bin/data/Default.png", true, true);
-        ofFile::copyFromTo(ofFilePath::join(templatePath,"bin/data/Default@2x.png"),projectPath + "/bin/data/Default@2x.png", true, true);
-        ofFile::copyFromTo(ofFilePath::join(templatePath,"bin/data/Default@2x~ipad.png"),projectPath + "/bin/data/Default@2x~ipad.png", true, true);
-        ofFile::copyFromTo(ofFilePath::join(templatePath,"bin/data/Default@2x~iphone.png"),projectPath + "/bin/data/Default@2x~iphone.png", true, true);
-        ofFile::copyFromTo(ofFilePath::join(templatePath,"bin/data/Default~ipad.png"),projectPath + "/bin/data/Default~ipad.png", true, true);
-        ofFile::copyFromTo(ofFilePath::join(templatePath,"bin/data/Default~iphone.png"),projectPath + "/bin/data/Default~iphone.png", true, true);
-        ofFile::copyFromTo(ofFilePath::join(templatePath,"bin/data/Icon-72.png"),projectPath + "/bin/data/Icon-72.png", true, true);
-        ofFile::copyFromTo(ofFilePath::join(templatePath,"bin/data/Icon-72@2x.png"),projectPath + "/bin/data/Icon-72@2x.png", true, true);
-		ofFile::copyFromTo(ofFilePath::join(templatePath,"bin/data/Icon.png"),projectPath + "/bin/data/Icon.png", true, true);
-        ofFile::copyFromTo(ofFilePath::join(templatePath,"bin/data/Icon@2x.png"),projectPath + "/bin/data/Icon@2x.png", true, true);
+        ofFile::copyFromTo(ofFilePath::join(templatePath.toString(),"bin/data/Default-568h@2x~iphone.png"),projectPath + "/bin/data/Default-568h@2x~iphone.png", true, true);
+		ofFile::copyFromTo(ofFilePath::join(templatePath.toString(),"bin/data/Default.png"),projectPath + "/bin/data/Default.png", true, true);
+        ofFile::copyFromTo(ofFilePath::join(templatePath.toString(),"bin/data/Default@2x.png"),projectPath + "/bin/data/Default@2x.png", true, true);
+        ofFile::copyFromTo(ofFilePath::join(templatePath.toString(),"bin/data/Default@2x~ipad.png"),projectPath + "/bin/data/Default@2x~ipad.png", true, true);
+        ofFile::copyFromTo(ofFilePath::join(templatePath.toString(),"bin/data/Default@2x~iphone.png"),projectPath + "/bin/data/Default@2x~iphone.png", true, true);
+        ofFile::copyFromTo(ofFilePath::join(templatePath.toString(),"bin/data/Default~ipad.png"),projectPath + "/bin/data/Default~ipad.png", true, true);
+        ofFile::copyFromTo(ofFilePath::join(templatePath.toString(),"bin/data/Default~iphone.png"),projectPath + "/bin/data/Default~iphone.png", true, true);
+        ofFile::copyFromTo(ofFilePath::join(templatePath.toString(),"bin/data/Icon-72.png"),projectPath + "/bin/data/Icon-72.png", true, true);
+        ofFile::copyFromTo(ofFilePath::join(templatePath.toString(),"bin/data/Icon-72@2x.png"),projectPath + "/bin/data/Icon-72@2x.png", true, true);
+		ofFile::copyFromTo(ofFilePath::join(templatePath.toString(),"bin/data/Icon.png"),projectPath + "/bin/data/Icon.png", true, true);
+        ofFile::copyFromTo(ofFilePath::join(templatePath.toString(),"bin/data/Icon@2x.png"),projectPath + "/bin/data/Icon@2x.png", true, true);
     }
 
     // this is for xcode 4 scheme issues. but I'm not sure this is right.
@@ -724,25 +729,28 @@ void XcodeProject::addInclude(const std::string& includeName)
 
     pugi::xpath_node_set headerArray = doc.select_nodes(query);
 
-    doc.save(std::cout);
+//    doc.save(std::cout);
 
     if (headerArray.size() > 0)
     {
 
-        for (pugi::xpath_node_set::const_iterator it = headerArray.begin(); it != headerArray.end(); ++it){
+        for (pugi::xpath_node_set::const_iterator it = headerArray.begin(); it != headerArray.end(); ++it)
+        {
             pugi::xpath_node node = *it;
             //node.node().print(std::cout);
             node.node().append_child("string").append_child(pugi::node_pcdata).set_value(includeName.c_str());
         }
 
-    } else {
-
+    }
+    else
+    {
         //printf("we don't have HEADER_SEARCH_PATHS, so we're adding them... and calling this function again \n");
         sprintf(query, "//key[contains(.,'baseConfigurationReference')]/parent::node()//key[contains(.,'buildSettings')]/following-sibling::node()[1]");
         pugi::xpath_node_set dictArray = doc.select_nodes(query);
 
 
-        for (pugi::xpath_node_set::const_iterator it = dictArray.begin(); it != dictArray.end(); ++it){
+        for (pugi::xpath_node_set::const_iterator it = dictArray.begin(); it != dictArray.end(); ++it)
+        {
             pugi::xpath_node node = *it;
 
             //node.node().print(std::cout);
@@ -768,7 +776,8 @@ void XcodeProject::addInclude(const std::string& includeName)
 }
 
 
-void XcodeProject::addLibrary(const std::string& libraryName, LibType libType){
+void XcodeProject::addLibrary(const std::string& libraryName, LibType libType)
+{
 
     char query[255];
     sprintf(query, "//key[contains(.,'baseConfigurationReference')]/parent::node()//key[contains(.,'OTHER_LDFLAGS')]/following-sibling::node()[1]");

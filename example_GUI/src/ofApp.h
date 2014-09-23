@@ -12,6 +12,9 @@
 class ofApp: public ofBaseApp
 {
 public:
+    ofApp();
+    virtual ~ofApp();
+
     void setup();
     void draw();
 

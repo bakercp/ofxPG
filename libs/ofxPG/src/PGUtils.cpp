@@ -73,23 +73,13 @@ void PGUtils::findandreplace(std::string& tInput,
 }
 
 
-std::string PGUtils::loadFileAsString(const std::string & fn)
+void PGUtils::findandreplaceInTexfile(string fileName,
+                                      std::string tFind,
+                                      std::string tReplace)
 {
-    std::ifstream fin(fn.c_str());
 
-    if(!fin)
-    {
-        // throw exception
-    }
-
-    std::ostringstream oss;
-    oss << fin.rdbuf();
-
-    return oss.str();
-}
-
-void PGUtils::findandreplaceInTexfile (string fileName, std::string tFind, std::string tReplace ){
-   if( ofFile::doesFileExist(fileName) ){
+   if (ofFile::doesFileExist(fileName))
+   {
 	
 	    std::ifstream t(ofToDataPath(fileName).c_str());
 	    std::stringstream buffer;
@@ -123,35 +113,52 @@ void PGUtils::findandreplaceInTexfile (string fileName, std::string tFind, std::
 }
 
 
+bool PGUtils::doesTagAndAttributeExist(pugi::xml_document& doc,
+                                       string tag,
+                                       string attribute,
+                                       string newValue)
+{
 
-
-bool PGUtils::doesTagAndAttributeExist(pugi::xml_document & doc, string tag, string attribute, string newValue){
     char xpathExpressionExists[1024];
-    sprintf(xpathExpressionExists, "//%s[@%s='%s']", tag.c_str(), attribute.c_str(), newValue.c_str());
+
+    sprintf(xpathExpressionExists, "//%s[@%s='%s']",
+            tag.c_str(),
+            attribute.c_str(),
+            newValue.c_str());
+
     //cout <<xpathExpressionExists <<endl;
+
     pugi::xpath_node_set set = doc.select_nodes(xpathExpressionExists);
-    if (set.size() != 0){
-        return true;
-    } else {
-        return false;
-    }
+
+    return !set.empty();
+
 }
 
-pugi::xml_node PGUtils::appendValue(pugi::xml_document & doc, string tag, string attribute, string newValue, bool overwriteMultiple){
-
-    if (overwriteMultiple == true){
+pugi::xml_node PGUtils::appendValue(pugi::xml_document& doc,
+                                    string tag,
+                                    string attribute,
+                                    string newValue,
+                                    bool overwriteMultiple)
+{
+    if (overwriteMultiple)
+    {
         // find the existing node...
         char xpathExpression[1024];
+
         sprintf(xpathExpression, "//%s[@%s='%s']", tag.c_str(), attribute.c_str(), newValue.c_str());
+
         pugi::xpath_node node = doc.select_single_node(xpathExpression);
-        if(string(node.node().attribute(attribute.c_str()).value()).size() > 0){ // for some reason we get nulls here?
+
+        if (string(node.node().attribute(attribute.c_str()).value()).size() > 0)
+        { // for some reason we get nulls here?
             // ...delete the existing node
             cout << "DELETING: " << node.node().name() << ": " << " " << node.node().attribute(attribute.c_str()).value() << endl;
             node.node().parent().remove_child(node.node());
         }
     }
 
-    if (!doesTagAndAttributeExist(doc, tag, attribute, newValue)){
+    if (!doesTagAndAttributeExist(doc, tag, attribute, newValue))
+    {
         // otherwise, add it please:
         char xpathExpression[1024];
         sprintf(xpathExpression, "//%s[@%s]", tag.c_str(), attribute.c_str());
@@ -161,26 +168,38 @@ pugi::xml_node PGUtils::appendValue(pugi::xml_document & doc, string tag, string
         pugi::xml_node nodeAdded = node.parent().append_copy(node);
         nodeAdded.attribute(attribute.c_str()).set_value(newValue.c_str());
         return nodeAdded;
-    }else{
+    }
+    else
+    {
     	return pugi::xml_node();
     }
 
 }
 
 // todo -- this doesn't use ofToDataPath -- so it's broken a bit.  can we fix?
-void PGUtils::getFilesRecursively(const string & path, vector < string > & fileNames){
+void PGUtils::getFilesRecursively(const string & path,
+                                  vector<string>& fileNames)
+{
 
     ofDirectory dir;
 
     //ofLogVerbose() << "in getFilesRecursively "<< path << endl;
 
     dir.listDir(path);
-    for (int i = 0; i < dir.size(); i++){
+
+    for (int i = 0; i < dir.size(); ++i)
+    {
         ofFile temp(dir.getFile(i));
-        if (dir.getName(i) == ".svn") continue; // ignore svn
-        if (temp.isFile()){
+
+        if (dir.getName(i) == ".svn")
+            continue; // ignore svn
+
+        if (temp.isFile())
+        {
             fileNames.push_back(dir.getPath(i));
-        } else if (temp.isDirectory()){
+        }
+        else if (temp.isDirectory())
+        {
             getFilesRecursively(dir.getPath(i), fileNames);
         }
     }
@@ -189,8 +208,10 @@ void PGUtils::getFilesRecursively(const string & path, vector < string > & fileN
 }
 
 
-bool PGUtils::isFolderNotCurrentPlatform(string folderName, string platform){
-	if( platforms.size() == 0 ){
+bool PGUtils::isFolderNotCurrentPlatform(string folderName, string platform)
+{
+	if (platforms.empty())
+    {
 		platforms.push_back("osx");
 		platforms.push_back("win_cb");
 		platforms.push_back("vs");
@@ -201,8 +222,10 @@ bool PGUtils::isFolderNotCurrentPlatform(string folderName, string platform){
 		platforms.push_back("iphone");
 	}
 
-	for(int i = 0; i < platforms.size(); i++){
-		if( folderName == platforms[i] && folderName != platform ){
+	for (int i = 0; i < platforms.size(); ++i)
+    {
+		if (folderName == platforms[i] && folderName != platform)
+        {
 			return true;
 		}
 	}
@@ -211,29 +234,47 @@ bool PGUtils::isFolderNotCurrentPlatform(string folderName, string platform){
 }
 
 
-void PGUtils::splitFromLast(string toSplit, string deliminator, string & first, string & second){
+void PGUtils::splitFromLast(string toSplit,
+                            string deliminator,
+                            string& first,
+                            string& second)
+{
     size_t found = toSplit.find_last_of(deliminator.c_str());
     first = toSplit.substr(0,found);
     second = toSplit.substr(found+1);
 }
 
 
-void PGUtils::splitFromFirst(string toSplit, string deliminator, string & first, string & second){
+void PGUtils::splitFromFirst(string toSplit,
+                             string deliminator,
+                             string& first,
+                             string& second)
+{
     size_t found = toSplit.find(deliminator.c_str());
     first = toSplit.substr(0,found );
     second = toSplit.substr(found+deliminator.size());
 }
 
 
-void PGUtils::getFoldersRecursively(const string & path, vector < string > & folderNames, string platform){
+void PGUtils::getFoldersRecursively(const string & path,
+                                    vector<string>& folderNames,
+                                    string platform)
+{
     ofDirectory dir;
+
     dir.listDir(path);
-    for (int i = 0; i < dir.size(); i++){
+
+    for (int i = 0; i < dir.size(); ++i)
+    {
         ofFile temp(dir.getFile(i));
-        if (temp.isDirectory() && isFolderNotCurrentPlatform(temp.getFileName(), platform) == false ){
+
+        if (temp.isDirectory() &&
+            isFolderNotCurrentPlatform(temp.getFileName(), platform) == false)
+        {
             getFoldersRecursively(dir.getPath(i), folderNames, platform);
         }
     }
+
     folderNames.push_back(path);
 }
 
@@ -243,10 +284,10 @@ void PGUtils::getLibsRecursively(const string & path,
                                  vector <string>& libFiles,
                                  vector < string >& libLibs,
                                  string platform)
-                                 {
+    {
     
-    if (ofFile::doesFileExist(ofFilePath::join(path, "libsorder.make"))){
-        
+    if (ofFile::doesFileExist(ofFilePath::join(path, "libsorder.make")))
+    {
         bool platformFound = false;
         
 #ifdef TARGET_WIN32
@@ -256,16 +297,18 @@ void PGUtils::getLibsRecursively(const string & path,
 #endif
         
         
-        if(platform!=""){
-            for(int j=0;j<(int)splittedPath.size();j++){
-                if(splittedPath[j]==platform){
+        if (platform!="")
+        {
+            for (std::size_t j = 0; j < splittedPath.size(); ++j)
+            {
+                if (splittedPath[j] == platform)
+                {
                     platformFound = true;
                     // break;
                 }
             }
         }
-        
-        
+
         if (platformFound == true){
             vector < string > libsInOrder;
             ofFile libsorderMake(ofFilePath::join(path, "libsorder.make"));
@@ -281,16 +324,17 @@ void PGUtils::getLibsRecursively(const string & path,
                 }
             }
         }
-        
-    } else {
+    }
+    else
+    {
         
         
         ofDirectory dir;
         dir.listDir(path);
         
         
-        for (int i = 0; i < dir.size(); i++){
-            
+        for (int i = 0; i < dir.size(); ++i)
+        {
 #ifdef TARGET_WIN32
             vector<string> splittedPath = ofSplitString(dir.getPath(i),"\\");
 #else
@@ -299,18 +343,22 @@ void PGUtils::getLibsRecursively(const string & path,
             
             ofFile temp(dir.getFile(i));
             
-            if (temp.isDirectory()){
+            if (temp.isDirectory())
+            {
                 //getLibsRecursively(dir.getPath(i), folderNames);
                 getLibsRecursively(dir.getPath(i), libFiles, libLibs, platform);
                 
-            } else {
-                
-                
+            }
+            else
+            {
                 bool platformFound = false;
                 
-                if(platform!=""){
-                    for(int j=0;j<(int)splittedPath.size();j++){
-                        if(splittedPath[j]==platform){
+                if (platform != "")
+                {
+                    for (std::size_t j = 0; j < splittedPath.size(); ++j)
+                    {
+                        if (splittedPath[j] == platform)
+                        {
                             platformFound = true;
                         }
                     }
@@ -350,13 +398,9 @@ void PGUtils::getLibsRecursively(const string & path,
         }
         
     }
-    
-    
-    
+
     //folderNames.push_back(path);
-    
-    
-    
+
     //    DirectoryIterator end;
     //        for (DirectoryIterator it(path); it != end; ++it){
     //            if (!it->isDirectory()){
@@ -387,76 +431,102 @@ void PGUtils::getLibsRecursively(const string & path,
     //                getLibsRecursively(it->path(), libFiles, libLibs, platform);
     //            }
     //        }
-    
 }
 
 
 
-void PGUtils::fixSlashOrder(string & toFix){
+void PGUtils::fixSlashOrder(string& toFix)
+{
     std::replace(toFix.begin(), toFix.end(),'/', '\\');
 }
 
 
-string PGUtils::unsplitString(vector < string > strings, string deliminator ){
+string PGUtils::unsplitString(vector <string> strings,
+                              string deliminator)
+{
     string result;
-    for (int i = 0; i < (int)strings.size(); i++){
-        if (i != 0) result += deliminator;
+
+    for (int i = 0; i < strings.size(); ++i)
+    {
+        if (i != 0)
+            result += deliminator;
+
         result += strings[i];
     }
+
     return result;
 }
 
 
-string PGUtils::getOFRoot(){
-	return ofFilePath::removeTrailingSlash(OFRoot);
+Poco::Path PGUtils::getOFRoot()
+{
+	return Poco::Path::forDirectory(OFRoot);
 }
 
-string PGUtils::getAddonsRoot(){
-	return ofFilePath::join(getOFRoot(), "addons");
+string PGUtils::getAddonsRoot()
+{
+	return ofFilePath::join(getOFRoot().toString(), "addons");
 }
 
-void PGUtils::setOFRoot(string path){
+
+void PGUtils::setOFRoot(string path)
+{
 	OFRoot = path;
 }
 
-string PGUtils::getOFRelPath(string from){
-	from = ofFilePath::removeTrailingSlash(from);
-    Poco::Path base(true);
-    base.parse(from);
+string PGUtils::getOFRelPath(string _from)
+{
+    Poco::Path from = Poco::Path::forDirectory(_from);
 
-    Poco::Path path;
-    path.parse(PGUtils::getOFRoot());
-    path.makeAbsolute();
-
+    Poco::Path root = PGUtils::getOFRoot();
 
 	string relPath;
-	if (path.toString() == base.toString()){
+
+    ofLogVerbose() << " _from " << _from << endl;
+    ofLogVerbose() << "  from " <<  from << endl;
+    ofLogVerbose() << "  path " <<  path << endl;
+
+    if (path.toString() == base.toString())
+    {
 		// do something.
 	}
 
 	int maxx = MAX(base.depth(), path.depth());
-	for (int i = 0; i <= maxx; i++){
+
+    for (int i = 0; i <= maxx; ++i)
+    {
 
 		bool bRunOut = false;
 		bool bChanged = false;
-		if (i <= base.depth() && i <= path.depth()){
-			if (base.directory(i) == path.directory(i)){
 
-			} else {
+		if (i <= base.depth() && i <= path.depth())
+        {
+			if (base.directory(i) == path.directory(i))
+            {
+                // ?
+			}
+            else
+            {
 				bChanged = true;
 			}
-		} else {
+		}
+        else
+        {
 			bRunOut = true;
 		}
 
 
-		if (bRunOut == true || bChanged == true){
-            for (int j = i; j <= base.depth(); j++){
+		if (bRunOut || bChanged)
+        {
+            for (int j = i; j <= base.depth(); ++j)
+            {
 				relPath += "../";
 			}
-			for (int j = i; j <= path.depth(); j++){
+			for (int j = i; j <= path.depth(); ++j)
+            {
 				relPath += path.directory(j) + "/";
 			}
+
 			break;
 		}
 	}
@@ -466,43 +536,66 @@ string PGUtils::getOFRelPath(string from){
     return relPath;
 }
 
-void PGUtils::parseAddonsDotMake(string path, vector < string > & addons){
-
+void PGUtils::parseAddonsDotMake(string path, vector<string>& addons)
+{
     addons.clear();
-	ofFile addonsmake(path);
-	if(!addonsmake.exists()){
+
+    ofFile addonsmake(path);
+
+    if (!addonsmake.exists())
+    {
 		return;
 	}
-	ofBuffer addonsmakebuff;
-	addonsmake >> addonsmakebuff;
-	while(!addonsmakebuff.isLastLine() && addonsmakebuff.size() > 0){
+
+    ofBuffer addonsmakebuff;
+
+    addonsmake >> addonsmakebuff;
+
+	while (!addonsmakebuff.isLastLine() && addonsmakebuff.size() > 0)
+    {
         string line = addonsmakebuff.getNextLine();
-		if(line!=""){
+
+        if (!line.empty())
+        {
 			addons.push_back(line);
 		}
 	}
 }
 
-bool PGUtils::checkConfigExists(){
-	
-	return ofFile::doesFileExist(ofFilePath::join(ofFilePath::getUserHomeDir(),".ofprojectgenerator/config"));
+bool PGUtils::checkConfigExists()
+{
+	return ofFile::doesFileExist(ofFilePath::join(ofFilePath::getUserHomeDir(), ".ofprojectgenerator/config"));
 }
 
-bool PGUtils::askOFRoot(){
+bool PGUtils::askOFRoot()
+{
 	ofFileDialogResult res = ofSystemLoadDialog("OF project generator", "choose the folder of your OF install");
-	if (res.fileName == "" || res.filePath == "") return false;
+
+	if (res.fileName == "" || res.filePath == "")
+        return false;
 
 	ofDirectory config(ofFilePath::join(ofFilePath::getUserHomeDir(),".ofprojectgenerator"));
+
 	config.create(true);
-	ofFile configFile(ofFilePath::join(ofFilePath::getUserHomeDir(),".ofprojectgenerator/config"),ofFile::WriteOnly);
-	configFile << res.filePath;
-	return true;
+
+    ofFile configFile(ofFilePath::join(ofFilePath::getUserHomeDir(),".ofprojectgenerator/config"),ofFile::WriteOnly);
+
+    configFile << res.filePath;
+
+    return true;
 }
 
-string PGUtils::getOFRootFromConfig(){
-	if(!checkConfigExists()) return "";
-	ofFile configFile(ofFilePath::join(ofFilePath::getUserHomeDir(),".ofprojectgenerator/config"),ofFile::ReadOnly);
+string PGUtils::getOFRootFromConfig()
+{
+	if (!checkConfigExists())
+        return "";
+
+    ofFile configFile(ofFilePath::join(ofFilePath::getUserHomeDir(),
+                                       ".ofprojectgenerator/config"),
+                      ofFile::ReadOnly);
+
 	ofBuffer filePath = configFile.readToBuffer();
+
 	return filePath.getFirstLine();
 }
 

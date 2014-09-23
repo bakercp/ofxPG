@@ -10,8 +10,9 @@ namespace PG {
 const std::string CBLinuxProject::LOG_NAME = "CBLinuxProject";
 
 
-void CBLinuxProject::setup() {
-	templatePath = ofFilePath::join(PGUtils::getOFRoot(),"scripts/linux/template/"+target);
+void CBLinuxProject::setup()
+{
+	templatePath = ofFilePath::join(PGUtils::getOFRoot().toString(),"scripts/linux/template/"+target);
 }
 
 bool CBLinuxProject::createProjectFile(){
@@ -19,7 +20,7 @@ bool CBLinuxProject::createProjectFile(){
 	if(!dir.exists()) dir.create(true);
 
     ofFile project(ofFilePath::join(projectPath, projectName + ".cbp"));
-    string src =  ofFilePath::join(templatePath,"emptyExample_" + target + ".cbp");
+    string src =  ofFilePath::join(templatePath.toString(),"emptyExample_" + target + ".cbp");
     string dst = project.path();
     bool ret;
 
@@ -35,7 +36,7 @@ bool CBLinuxProject::createProjectFile(){
 
     ofFile workspace(ofFilePath::join(projectPath, projectName + ".workspace"));
     if(!workspace.exists()){
-		src = ofFilePath::join(templatePath,"emptyExample_" + target + ".workspace");
+		src = ofFilePath::join(templatePath.toString(),"emptyExample_" + target + ".workspace");
 		dst = workspace.path();
 		ret = ofFile::copyFromTo(src,dst);
 		if(!ret){
@@ -48,7 +49,7 @@ bool CBLinuxProject::createProjectFile(){
 
     ofFile makefile(ofFilePath::join(projectPath,"Makefile"));
     if(!makefile.exists()){
-		src = ofFilePath::join(templatePath,"Makefile");
+		src = ofFilePath::join(templatePath.toString(),"Makefile");
 		dst = makefile.path();
 		ret = ofFile::copyFromTo(src,dst);
 		if(!ret){
@@ -59,7 +60,7 @@ bool CBLinuxProject::createProjectFile(){
 
     ofFile config(ofFilePath::join(projectPath,"config.make"));
     if(!config.exists()){
-    	src = ofFilePath::join(templatePath,"config.make");
+    	src = ofFilePath::join(templatePath.toString(),"config.make");
     	dst = config.path();
     	ret = ofFile::copyFromTo(src,dst);
     	if(!ret){

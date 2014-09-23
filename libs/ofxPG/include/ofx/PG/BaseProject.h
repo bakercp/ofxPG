@@ -55,7 +55,7 @@ protected:
 
     std::string projectPath;
     std::string projectName;
-    std::string templatePath;
+    Poco::Path templatePath;
     std::string target;
 
     pugi::xml_document doc;
