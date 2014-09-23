@@ -474,65 +474,51 @@ void PGUtils::setOFRoot(string path)
 	OFRoot = path;
 }
 
-string PGUtils::getOFRelPath(string _from)
+string PGUtils::getOFRelPath(string from)
 {
-    Poco::Path from = Poco::Path::forDirectory(_from);
+	from = ofFilePath::removeTrailingSlash(from);
+    Poco::Path base(true);
+    base.parse(from);
 
-    Poco::Path root = PGUtils::getOFRoot();
+    Poco::Path path;
+    path.parse( PGUtils::getOFRoot().toString() );
+    path.makeAbsolute();
+
 
 	string relPath;
-
-    ofLogVerbose() << " _from " << _from << endl;
-    ofLogVerbose() << "  from " <<  from << endl;
-    ofLogVerbose() << "  path " <<  path << endl;
-
-    if (path.toString() == base.toString())
-    {
+	if (path.toString() == base.toString()){
 		// do something.
 	}
 
 	int maxx = MAX(base.depth(), path.depth());
-
-    for (int i = 0; i <= maxx; ++i)
-    {
+	for (int i = 0; i <= maxx; i++){
 
 		bool bRunOut = false;
 		bool bChanged = false;
+		if (i <= base.depth() && i <= path.depth()){
+			if (base.directory(i) == path.directory(i)){
 
-		if (i <= base.depth() && i <= path.depth())
-        {
-			if (base.directory(i) == path.directory(i))
-            {
-                // ?
-			}
-            else
-            {
+			} else {
 				bChanged = true;
 			}
-		}
-        else
-        {
+		} else {
 			bRunOut = true;
 		}
 
 
-		if (bRunOut || bChanged)
-        {
-            for (int j = i; j <= base.depth(); ++j)
-            {
+		if (bRunOut == true || bChanged == true){
+            for (int j = i; j <= base.depth(); j++){
 				relPath += "../";
 			}
-			for (int j = i; j <= path.depth(); ++j)
-            {
+			for (int j = i; j <= path.depth(); j++){
 				relPath += path.directory(j) + "/";
 			}
-
 			break;
 		}
 	}
 
     ofLogVerbose() << " returning path " << relPath << endl;
-
+    
     return relPath;
 }
 
