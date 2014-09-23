@@ -6,7 +6,7 @@
 #include "ofUtils.h"
 #include "ofFileUtils.h"
 #include "ofxPugiXML.h"
-#include "ofx/PG/Utils.h"
+#include "ofx/PG/PGUtils.h"
 
 
 namespace ofx {
@@ -307,16 +307,16 @@ void ofAddon::fromFS(string path, string platform){
     clear();
     this->platform = platform;
 	name = ofFilePath::getFileName(path);
-	addonPath = ofFilePath::join(Utils::getAddonsRoot(),name);
+	addonPath = ofFilePath::join(PGUtils::getAddonsRoot(),name);
 
     string filePath = path + "/src";
-    string ofRootPath = ofFilePath::addTrailingSlash(Utils::getOFRoot()); //we need to add a trailing slash for the erase to work properly
+    string ofRootPath = ofFilePath::addTrailingSlash(PGUtils::getOFRoot()); //we need to add a trailing slash for the erase to work properly
 
     ofLogVerbose() << "in fromFS, trying src " << filePath;
 
 
 	ofSetLogLevel(OF_LOG_NOTICE);
-    Utils::getFilesRecursively(filePath, srcFiles);
+    PGUtils::getFilesRecursively(filePath, srcFiles);
 	//ofSetLogLevel(OF_LOG_VERBOSE);
 
     for(int i=0;i<(int)srcFiles.size();i++){
@@ -339,7 +339,7 @@ void ofAddon::fromFS(string path, string platform){
 
 	//ofSetLogLevel(OF_LOG_NOTICE);
     if (ofDirectory::doesDirectoryExist(libsPath)){
-        Utils::getLibsRecursively(libsPath, libFiles, libs, platform);
+        PGUtils::getLibsRecursively(libsPath, libFiles, libs, platform);
     }
     //ofSetLogLevel(OF_LOG_VERBOSE);
 
@@ -398,9 +398,9 @@ void ofAddon::fromFS(string path, string platform){
 
 	// the dirList verbosity is crazy, so I'm setting this off for now.
 	//ofSetLogLevel(OF_LOG_NOTICE);
-    Utils::getFoldersRecursively(path + "/libs", libFolders, platform);
+    PGUtils::getFoldersRecursively(path + "/libs", libFolders, platform);
     vector < string > srcFolders;
-    Utils::getFoldersRecursively(path + "/src", srcFolders, platform);
+    PGUtils::getFoldersRecursively(path + "/src", srcFolders, platform);
 	//ofSetLogLevel(OF_LOG_VERBOSE);
 
     for (int i = 0; i < (int)libFolders.size(); i++){

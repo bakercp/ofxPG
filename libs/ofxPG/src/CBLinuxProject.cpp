@@ -11,7 +11,7 @@ const std::string CBLinuxProject::LOG_NAME = "CBLinuxProject";
 
 
 void CBLinuxProject::setup() {
-	templatePath = ofFilePath::join(Utils::getOFRoot(),"scripts/linux/template/"+target);
+	templatePath = ofFilePath::join(PGUtils::getOFRoot(),"scripts/linux/template/"+target);
 }
 
 bool CBLinuxProject::createProjectFile(){
@@ -29,7 +29,7 @@ bool CBLinuxProject::createProjectFile(){
 			ofLogError(LOG_NAME) << "error copying cbp template from " << src << " to " << dst;
 			return false;
 		}else{
-			Utils::findandreplaceInTexfile(dst, "emptyExample", projectName);
+			PGUtils::findandreplaceInTexfile(dst, "emptyExample", projectName);
 		}
     }
 
@@ -42,7 +42,7 @@ bool CBLinuxProject::createProjectFile(){
 			ofLogError(LOG_NAME) << "error copying workspace template from "<< src << " to " << dst;
 			return false;
 		}else{
-			Utils::findandreplaceInTexfile(dst, "emptyExample", projectName);
+			PGUtils::findandreplaceInTexfile(dst, "emptyExample", projectName);
 		}
     }
 
@@ -70,13 +70,13 @@ bool CBLinuxProject::createProjectFile(){
 
 
     // handle the relative roots.
-    string relRoot = Utils::getOFRelPath(ofFilePath::removeTrailingSlash(projectPath));
+    string relRoot = PGUtils::getOFRelPath(ofFilePath::removeTrailingSlash(projectPath));
     if (relRoot != "../../../"){
         string relPath2 = relRoot;
         relPath2.erase(relPath2.end()-1);
-        Utils::findandreplaceInTexfile(projectPath + "config.make", "../../..", relPath2);
-        Utils::findandreplaceInTexfile(ofFilePath::join(projectPath , projectName + ".workspace"), "../../../", relRoot);
-        Utils::findandreplaceInTexfile(ofFilePath::join(projectPath , projectName + ".cbp"), "../../../", relRoot);
+        PGUtils::findandreplaceInTexfile(projectPath + "config.make", "../../..", relPath2);
+        PGUtils::findandreplaceInTexfile(ofFilePath::join(projectPath , projectName + ".workspace"), "../../../", relRoot);
+        PGUtils::findandreplaceInTexfile(ofFilePath::join(projectPath , projectName + ".cbp"), "../../../", relRoot);
     }
 
     return true;

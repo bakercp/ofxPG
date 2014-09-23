@@ -9,7 +9,7 @@ namespace ofx {
 namespace PG {
 
 
-class Utils
+class PGUtils
 {
 public:
     static std::string generateUUID(string input);

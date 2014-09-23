@@ -33,11 +33,11 @@ bool VisualStudioProject::createProjectFile()
 	if (result.status==pugi::status_ok) ofLogVerbose() << "loaded filter ";
 	else ofLogVerbose() << "problem loading filter ";
 
-    Utils::findandreplaceInTexfile(solution,"emptyExample",projectName);
-    Utils::findandreplaceInTexfile(user,"emptyExample",projectName);
-    Utils::findandreplaceInTexfile(project,"emptyExample",projectName);
+    PGUtils::findandreplaceInTexfile(solution,"emptyExample",projectName);
+    PGUtils::findandreplaceInTexfile(user,"emptyExample",projectName);
+    PGUtils::findandreplaceInTexfile(project,"emptyExample",projectName);
 
-    string relRoot = Utils::getOFRelPath(ofFilePath::removeTrailingSlash(projectPath));
+    string relRoot = PGUtils::getOFRelPath(ofFilePath::removeTrailingSlash(projectPath));
     if (relRoot != "../../../"){
 
         string relRootWindows = relRoot;
@@ -48,11 +48,11 @@ bool VisualStudioProject::createProjectFile()
         }
 
         // sln has windows paths:
-        Utils::findandreplaceInTexfile(solution, "..\\..\\..\\", relRootWindows);
+        PGUtils::findandreplaceInTexfile(solution, "..\\..\\..\\", relRootWindows);
 
         // vcx has unixy paths:
         //..\..\..\libs
-        Utils::findandreplaceInTexfile(project, "../../../", relRoot);
+        PGUtils::findandreplaceInTexfile(project, "../../../", relRoot);
     }
 
     return true;
@@ -86,9 +86,9 @@ void VisualStudioProject::appendFilter(const string& _folderName)
 {
     std::string folderName = _folderName;
 
-    Utils::fixSlashOrder(folderName);
+    PGUtils::fixSlashOrder(folderName);
 
-	string uuid = Utils::generateUUID(folderName);
+	string uuid = PGUtils::generateUUID(folderName);
 
 	string tag = "//ItemGroup[Filter]/Filter[@Include=\"" + folderName + "\"]";
 	 pugi::xpath_node_set set = filterXmlDoc.select_nodes(tag.c_str());
@@ -120,8 +120,8 @@ void VisualStudioProject::addSrc(const std::string&  _srcFile, const std::string
     std::string folder = _folder;
     std::string srcFile = _srcFile;
 
-    Utils::fixSlashOrder(folder);
-    Utils::fixSlashOrder(srcFile);
+    PGUtils::fixSlashOrder(folder);
+    PGUtils::fixSlashOrder(srcFile);
 
 	vector < string > folderSubNames = ofSplitString(folder, "\\");
 	string folderName = "";
@@ -132,7 +132,7 @@ void VisualStudioProject::addSrc(const std::string&  _srcFile, const std::string
 	}
 
     if (ofIsStringInString(srcFile, ".h") || ofIsStringInString(srcFile, ".hpp")){
-        Utils::appendValue(doc, "ClInclude", "Include", srcFile);
+        PGUtils::appendValue(doc, "ClInclude", "Include", srcFile);
 
 		pugi::xml_node node = filterXmlDoc.select_single_node("//ItemGroup[ClInclude]").node();
 		pugi::xml_node nodeAdded = node.append_child("ClInclude");
@@ -140,7 +140,7 @@ void VisualStudioProject::addSrc(const std::string&  _srcFile, const std::string
 		nodeAdded.append_child("Filter").append_child(pugi::node_pcdata).set_value(folder.c_str());
 
     } else {
-        Utils::appendValue(doc, "ClCompile", "Include", srcFile);
+        PGUtils::appendValue(doc, "ClCompile", "Include", srcFile);
 
 		pugi::xml_node node = filterXmlDoc.select_single_node("//ItemGroup[ClCompile]").node();
 		pugi::xml_node nodeAdded = node.append_child("ClCompile");
@@ -157,7 +157,7 @@ void VisualStudioProject::addInclude(const std::string& _includeName){
 
     std::string includeName = _includeName;
 
-    Utils::fixSlashOrder(includeName);
+    PGUtils::fixSlashOrder(includeName);
 
     pugi::xpath_node_set source = doc.select_nodes("//ClCompile/AdditionalIncludeDirectories");
     for (pugi::xpath_node_set::const_iterator it = source.begin(); it != source.end(); ++it){
@@ -172,7 +172,7 @@ void VisualStudioProject::addInclude(const std::string& _includeName){
         }
         if (bAdd == true){
             strings.push_back(includeName);
-            string includesNew = Utils::unsplitString(strings, ";");
+            string includesNew = PGUtils::unsplitString(strings, ";");
             node.node().first_child().set_value(includesNew.c_str());
         }
 
@@ -184,7 +184,7 @@ void VisualStudioProject::addLibrary(const string&  _libraryName, LibType libTyp
 
     std::string libraryName = _libraryName;
 
-    Utils::fixSlashOrder(libraryName);
+    PGUtils::fixSlashOrder(libraryName);
 
     // ok first, split path and library name.
     size_t found = libraryName.find_last_of("\\");
@@ -207,7 +207,7 @@ void VisualStudioProject::addLibrary(const string&  _libraryName, LibType libTyp
         }
         if (bAdd == true){
             strings.push_back(libFolder);
-            string libPathsNew = Utils::unsplitString(strings, ";");
+            string libPathsNew = PGUtils::unsplitString(strings, ";");
             node.node().first_child().set_value(libPathsNew.c_str());
         }
     }
@@ -238,7 +238,7 @@ void VisualStudioProject::addLibrary(const string&  _libraryName, LibType libTyp
 
         if (bAdd == true){
             strings.push_back(libName);
-            string libsNew = Utils::unsplitString(strings, ";");
+            string libsNew = PGUtils::unsplitString(strings, ";");
             node.node().first_child().set_value(libsNew.c_str());
         }
 		platformCounter++;
@@ -294,11 +294,11 @@ void VisualStudioProject::addAddon(ofAddon & addon)
             // check if this lib name is contained within another lib name and is not the same name
             if(ofIsStringInString(addon.libs[j], firstPart) && addon.libs[i] != addon.libs[j]){
                 // if it is then add respecitive libs to debug and release
-                if(!Utils::isInVector(addon.libs[j], debugLibs)){
+                if(!PGUtils::isInVector(addon.libs[j], debugLibs)){
                     //cout << "adding to DEBUG " << addon.libs[j] << endl;
                     debugLibs.push_back(addon.libs[j]);
                 }
-                if(!Utils::isInVector(addon.libs[i], releaseLibs)){
+                if(!PGUtils::isInVector(addon.libs[i], releaseLibs)){
                     //cout << "adding to RELEASE " << addon.libs[i] << endl;
                     releaseLibs.push_back(addon.libs[i]);
                 }
@@ -311,7 +311,7 @@ void VisualStudioProject::addAddon(ofAddon & addon)
                 // but we catch that once all pairs have been added
                 // since we cannot guarantee the order of parsing libs
                 // although this is innefficient it fixes issues on linux
-                if(!Utils::isInVector(addon.libs[i], possibleReleaseOrDebugOnlyLibs)){
+                if(!PGUtils::isInVector(addon.libs[i], possibleReleaseOrDebugOnlyLibs)){
                     possibleReleaseOrDebugOnlyLibs.push_back(addon.libs[i]);
                 }
                 // keep searching...
@@ -320,7 +320,7 @@ void VisualStudioProject::addAddon(ofAddon & addon)
     }
 
     for(std::size_t i=0;i< possibleReleaseOrDebugOnlyLibs.size();i++){
-         if(!Utils::isInVector(possibleReleaseOrDebugOnlyLibs[i], debugLibs) && !Utils::isInVector(possibleReleaseOrDebugOnlyLibs[i], releaseLibs)){
+         if(!PGUtils::isInVector(possibleReleaseOrDebugOnlyLibs[i], debugLibs) && !PGUtils::isInVector(possibleReleaseOrDebugOnlyLibs[i], releaseLibs)){
             ofLogVerbose() << "RELEASE ONLY LIBS FOUND " << possibleReleaseOrDebugOnlyLibs[i] << endl;
             debugLibs.push_back(possibleReleaseOrDebugOnlyLibs[i]);
             releaseLibs.push_back(possibleReleaseOrDebugOnlyLibs[i]);

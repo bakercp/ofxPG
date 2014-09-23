@@ -7,7 +7,7 @@
 #include "ofLog.h"
 #include "ofxPugiXML.h"
 #include "ofx/PG/ofAddon.h"
-#include "ofx/PG/Utils.h"
+#include "ofx/PG/PGUtils.h"
 
 
 namespace ofx {

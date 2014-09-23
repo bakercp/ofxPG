@@ -14,7 +14,7 @@ BaseProject::BaseProject(): bLoaded(false)
 void BaseProject::setup(const std::string& _target)
 {
     target = _target;
-    templatePath = ofFilePath::join(Utils::getOFRoot(),"scripts/" + target + "/template/");
+    templatePath = ofFilePath::join(PGUtils::getOFRoot(),"scripts/" + target + "/template/");
     setup(); // call the inherited class setup(), now that target is set.
 }
 
@@ -50,7 +50,7 @@ bool BaseProject::create(const std::string& path)
 
     if (bDoesDirExist){
         vector < string > fileNames;
-        Utils::getFilesRecursively(ofFilePath::join(projectPath , "src"), fileNames);
+        PGUtils::getFilesRecursively(ofFilePath::join(projectPath , "src"), fileNames);
 
         for (int i = 0; i < (int)fileNames.size(); i++){
 
@@ -58,9 +58,9 @@ bool BaseProject::create(const std::string& path)
 
             string first, last;
 #ifdef TARGET_WIN32
-            Utils::splitFromLast(fileNames[i], "\\", first, last);
+            PGUtils::splitFromLast(fileNames[i], "\\", first, last);
 #else
-            Utils::splitFromLast(fileNames[i], "/", first, last);
+            PGUtils::splitFromLast(fileNames[i], "/", first, last);
 #endif
             if (fileNames[i] != "src/ofApp.cpp" &&
                 fileNames[i] != "src/ofApp.h" &&
@@ -177,8 +177,8 @@ void BaseProject::parseAddons()
 	while (!addonsMakeMem.isLastLine())
     {
 		ofAddon addon;
-		addon.pathToOF = Utils::getOFRelPath(projectPath);
-		addon.fromFS(ofFilePath::join(ofFilePath::join(Utils::getOFRoot(), "addons"),
+		addon.pathToOF = PGUtils::getOFRelPath(projectPath);
+		addon.fromFS(ofFilePath::join(ofFilePath::join(PGUtils::getOFRoot(), "addons"),
                                       addonsMakeMem.getNextLine()),
                                       target);
 		addAddon(addon);

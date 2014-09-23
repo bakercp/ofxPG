@@ -1,4 +1,4 @@
-#include "ofx/PG/Utils.h"
+#include "ofx/PG/PGUtils.h"
 
 #include <algorithm>
 #include <iostream>
@@ -33,11 +33,11 @@ namespace ofx {
 namespace PG {
 
 
-string Utils::OFRoot = "../../..";
-vector <string> Utils::platforms = vector<string>();
+std::string PGUtils::OFRoot = "../../..";
+std::vector<std::string> PGUtils::platforms = vector<string>();
 
 
-string Utils::generateUUID(string input){
+string PGUtils::generateUUID(string input){
 
     std::string passphrase("openFrameworks"); // HMAC needs a passphrase
 
@@ -53,7 +53,9 @@ string Utils::generateUUID(string input){
 }
 
 
-void Utils::findandreplace( std::string& tInput, std::string tFind, std::string tReplace )
+void PGUtils::findandreplace(std::string& tInput,
+                             std::string tFind,
+                             std::string tReplace)
 {
 	size_t uPos = 0;
 	size_t uFindLen = tFind.length();
@@ -71,7 +73,7 @@ void Utils::findandreplace( std::string& tInput, std::string tFind, std::string 
 }
 
 
-std::string Utils::loadFileAsString(const std::string & fn)
+std::string PGUtils::loadFileAsString(const std::string & fn)
 {
     std::ifstream fin(fn.c_str());
 
@@ -86,7 +88,7 @@ std::string Utils::loadFileAsString(const std::string & fn)
     return oss.str();
 }
 
-void Utils::findandreplaceInTexfile (string fileName, std::string tFind, std::string tReplace ){
+void PGUtils::findandreplaceInTexfile (string fileName, std::string tFind, std::string tReplace ){
    if( ofFile::doesFileExist(fileName) ){
 	
 	    std::ifstream t(ofToDataPath(fileName).c_str());
@@ -123,7 +125,7 @@ void Utils::findandreplaceInTexfile (string fileName, std::string tFind, std::st
 
 
 
-bool Utils::doesTagAndAttributeExist(pugi::xml_document & doc, string tag, string attribute, string newValue){
+bool PGUtils::doesTagAndAttributeExist(pugi::xml_document & doc, string tag, string attribute, string newValue){
     char xpathExpressionExists[1024];
     sprintf(xpathExpressionExists, "//%s[@%s='%s']", tag.c_str(), attribute.c_str(), newValue.c_str());
     //cout <<xpathExpressionExists <<endl;
@@ -135,7 +137,7 @@ bool Utils::doesTagAndAttributeExist(pugi::xml_document & doc, string tag, strin
     }
 }
 
-pugi::xml_node Utils::appendValue(pugi::xml_document & doc, string tag, string attribute, string newValue, bool overwriteMultiple){
+pugi::xml_node PGUtils::appendValue(pugi::xml_document & doc, string tag, string attribute, string newValue, bool overwriteMultiple){
 
     if (overwriteMultiple == true){
         // find the existing node...
@@ -166,7 +168,7 @@ pugi::xml_node Utils::appendValue(pugi::xml_document & doc, string tag, string a
 }
 
 // todo -- this doesn't use ofToDataPath -- so it's broken a bit.  can we fix?
-void Utils::getFilesRecursively(const string & path, vector < string > & fileNames){
+void PGUtils::getFilesRecursively(const string & path, vector < string > & fileNames){
 
     ofDirectory dir;
 
@@ -187,7 +189,7 @@ void Utils::getFilesRecursively(const string & path, vector < string > & fileNam
 }
 
 
-bool Utils::isFolderNotCurrentPlatform(string folderName, string platform){
+bool PGUtils::isFolderNotCurrentPlatform(string folderName, string platform){
 	if( platforms.size() == 0 ){
 		platforms.push_back("osx");
 		platforms.push_back("win_cb");
@@ -209,21 +211,21 @@ bool Utils::isFolderNotCurrentPlatform(string folderName, string platform){
 }
 
 
-void Utils::splitFromLast(string toSplit, string deliminator, string & first, string & second){
+void PGUtils::splitFromLast(string toSplit, string deliminator, string & first, string & second){
     size_t found = toSplit.find_last_of(deliminator.c_str());
     first = toSplit.substr(0,found);
     second = toSplit.substr(found+1);
 }
 
 
-void Utils::splitFromFirst(string toSplit, string deliminator, string & first, string & second){
+void PGUtils::splitFromFirst(string toSplit, string deliminator, string & first, string & second){
     size_t found = toSplit.find(deliminator.c_str());
     first = toSplit.substr(0,found );
     second = toSplit.substr(found+deliminator.size());
 }
 
 
-void Utils::getFoldersRecursively(const string & path, vector < string > & folderNames, string platform){
+void PGUtils::getFoldersRecursively(const string & path, vector < string > & folderNames, string platform){
     ofDirectory dir;
     dir.listDir(path);
     for (int i = 0; i < dir.size(); i++){
@@ -237,10 +239,11 @@ void Utils::getFoldersRecursively(const string & path, vector < string > & folde
 
 
 
-void Utils::getLibsRecursively(const string & path, vector < string > & libFiles, vector < string > & libLibs, string platform ){
-    
-    
-    
+void PGUtils::getLibsRecursively(const string & path,
+                                 vector <string>& libFiles,
+                                 vector < string >& libLibs,
+                                 string platform)
+                                 {
     
     if (ofFile::doesFileExist(ofFilePath::join(path, "libsorder.make"))){
         
@@ -389,12 +392,12 @@ void Utils::getLibsRecursively(const string & path, vector < string > & libFiles
 
 
 
-void Utils::fixSlashOrder(string & toFix){
+void PGUtils::fixSlashOrder(string & toFix){
     std::replace(toFix.begin(), toFix.end(),'/', '\\');
 }
 
 
-string Utils::unsplitString(vector < string > strings, string deliminator ){
+string PGUtils::unsplitString(vector < string > strings, string deliminator ){
     string result;
     for (int i = 0; i < (int)strings.size(); i++){
         if (i != 0) result += deliminator;
@@ -404,25 +407,25 @@ string Utils::unsplitString(vector < string > strings, string deliminator ){
 }
 
 
-string Utils::getOFRoot(){
+string PGUtils::getOFRoot(){
 	return ofFilePath::removeTrailingSlash(OFRoot);
 }
 
-string Utils::getAddonsRoot(){
+string PGUtils::getAddonsRoot(){
 	return ofFilePath::join(getOFRoot(), "addons");
 }
 
-void Utils::setOFRoot(string path){
+void PGUtils::setOFRoot(string path){
 	OFRoot = path;
 }
 
-string Utils::getOFRelPath(string from){
+string PGUtils::getOFRelPath(string from){
 	from = ofFilePath::removeTrailingSlash(from);
     Poco::Path base(true);
     base.parse(from);
 
     Poco::Path path;
-    path.parse( Utils::getOFRoot() );
+    path.parse(PGUtils::getOFRoot());
     path.makeAbsolute();
 
 
@@ -463,7 +466,7 @@ string Utils::getOFRelPath(string from){
     return relPath;
 }
 
-void Utils::parseAddonsDotMake(string path, vector < string > & addons){
+void PGUtils::parseAddonsDotMake(string path, vector < string > & addons){
 
     addons.clear();
 	ofFile addonsmake(path);
@@ -480,12 +483,12 @@ void Utils::parseAddonsDotMake(string path, vector < string > & addons){
 	}
 }
 
-bool Utils::checkConfigExists(){
+bool PGUtils::checkConfigExists(){
 	
 	return ofFile::doesFileExist(ofFilePath::join(ofFilePath::getUserHomeDir(),".ofprojectgenerator/config"));
 }
 
-bool Utils::askOFRoot(){
+bool PGUtils::askOFRoot(){
 	ofFileDialogResult res = ofSystemLoadDialog("OF project generator", "choose the folder of your OF install");
 	if (res.fileName == "" || res.filePath == "") return false;
 
@@ -496,7 +499,7 @@ bool Utils::askOFRoot(){
 	return true;
 }
 
-string Utils::getOFRootFromConfig(){
+string PGUtils::getOFRootFromConfig(){
 	if(!checkConfigExists()) return "";
 	ofFile configFile(ofFilePath::join(ofFilePath::getUserHomeDir(),".ofprojectgenerator/config"),ofFile::ReadOnly);
 	ofBuffer filePath = configFile.readToBuffer();

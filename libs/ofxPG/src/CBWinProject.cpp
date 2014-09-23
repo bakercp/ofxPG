@@ -26,7 +26,7 @@ bool CBWinProject::createProjectFile()
 	ofFile::copyFromTo(ofFilePath::join(templatePath,"icon.rc"), projectPath + "icon.rc", false, true);
 
     //let's do some renaming:
-    string relRoot = Utils::getOFRelPath(ofFilePath::removeTrailingSlash(projectPath));
+    string relRoot = PGUtils::getOFRelPath(ofFilePath::removeTrailingSlash(projectPath));
 
     if (relRoot != "../../../"){
 
@@ -37,11 +37,11 @@ bool CBWinProject::createProjectFile()
                 relRootWindows[i] = '\\';
         }
 
-        Utils::findandreplaceInTexfile(workspace, "../../../", relRoot);
-        Utils::findandreplaceInTexfile(project, "../../../", relRoot);
+        PGUtils::findandreplaceInTexfile(workspace, "../../../", relRoot);
+        PGUtils::findandreplaceInTexfile(project, "../../../", relRoot);
 
-        Utils::findandreplaceInTexfile(workspace, "..\\..\\..\\", relRootWindows);
-        Utils::findandreplaceInTexfile(project, "..\\..\\..\\", relRootWindows);
+        PGUtils::findandreplaceInTexfile(workspace, "..\\..\\..\\", relRootWindows);
+        PGUtils::findandreplaceInTexfile(project, "..\\..\\..\\", relRootWindows);
     }
 
     return true;
@@ -65,7 +65,7 @@ bool CBWinProject::loadProjectFile()
 bool CBWinProject::saveProjectFile()
 {
 
-    Utils::findandreplaceInTexfile(ofFilePath::join(projectPath , projectName + ".workspace"),"emptyExample",projectName);
+    PGUtils::findandreplaceInTexfile(ofFilePath::join(projectPath , projectName + ".workspace"),"emptyExample",projectName);
     pugi::xpath_node_set title = doc.select_nodes("//Option[@title]");
     if(!title.empty()){
         if(!title[0].node().attribute("title").set_value(projectName.c_str())){
@@ -77,7 +77,7 @@ bool CBWinProject::saveProjectFile()
 
 void CBWinProject::addSrc(const std::string& srcName, const std::string& folder)
 {
-	pugi::xml_node node = Utils::appendValue(doc, "Unit", "filename", srcName);
+	pugi::xml_node node = PGUtils::appendValue(doc, "Unit", "filename", srcName);
 	if(!node.empty()){
 		node.child("Option").attribute("virtualFolder").set_value(folder.c_str());
 	}
@@ -87,13 +87,13 @@ void CBWinProject::addSrc(const std::string& srcName, const std::string& folder)
 void CBWinProject::addInclude(const std::string& includeName)
 {
     ofLogNotice() << "adding include " << includeName;
-    Utils::appendValue(doc, "Add", "directory", includeName);
+    PGUtils::appendValue(doc, "Add", "directory", includeName);
 }
 
 void CBWinProject::addLibrary(const string& libraryName, LibType libType)
 {
     ofLogNotice() << "adding library " << libraryName;
-    Utils::appendValue(doc, "Add", "library", libraryName, true);
+    PGUtils::appendValue(doc, "Add", "library", libraryName, true);
     // overwriteMultiple for a lib if it's there (so libsorder.make will work)
     // this is because we might need to say libosc, then ws2_32
 }
