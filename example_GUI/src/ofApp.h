@@ -3,7 +3,7 @@
 //#define COMMAND_LINE_ONLY
 
 #include "ofMain.h"
-#include "ofxProjectGenerator.h"
+#include "ofxPG.h"
 
 #ifndef COMMAND_LINE_ONLY
 #include "ofxGui.h"

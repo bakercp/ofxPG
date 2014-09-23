@@ -1,52 +1,78 @@
 #include "ofApp.h"
-#include "Utils.h"
+#include "ofx/PG/PGUtils.h"
 
 
-void ofApp::setup(){
-    //ofSetLogLevel(OF_LOG_VERBOSE);
-	project = NULL;
+void ofApp::setup()
+{
 
-	while(!ofx::PG::Utils::checkConfigExists()){
-		ofx::PG::Utils::askOFRoot();
+    ofSetLogLevel(OF_LOG_VERBOSE);
+
+	project = 0;
+
+	while(!ofx::PG::PGUtils::checkConfigExists())
+    {
+		ofx::PG::PGUtils::askOFRoot();
 	}
 
-	ofx::PG::Utils::setOFRoot(ofx::PG::Utils::getOFRootFromConfig());
+	ofx::PG::PGUtils::setOFRoot(ofx::PG::PGUtils::getOFRootFromConfig());
 
 	setupDrawableOFPath();
 
 	int targ = ofGetTargetPlatform();
+
 	//plat = OF_TARGET_IPHONE;
 
     setupForTarget(targ);
-    if(projectPath!="" || buildAllExamples){
-    	for(int i = 0; i < (int)targetsToMake.size(); i++){
+
+    if (projectPath != "" || buildAllExamples)
+    {
+    	for(std::size_t i = 0; i < targetsToMake.size(); ++i)
+        {
 			setupForTarget(targetsToMake[i]);
-			if(buildAllExamples){
+
+            if(buildAllExamples)
+            {
 				generateExamples();
-			}else{
+			}
+            else
+            {
 				project->setup(target);
 				project->create(projectPath);
 				vector < string > addons;
-				ofx::PG::Utils::parseAddonsDotMake(project->getPath() + "addons.make", addons);
-				for (int i = 0; i < (int)addons.size(); i++){
+
+				ofx::PG::PGUtils::parseAddonsDotMake(project->getPath() + "addons.make", addons);
+
+				for (std::size_t i = 0; i < addons.size(); ++i)
+                {
 					ofx::PG::ofAddon addon;
-					addon.fromFS(ofFilePath::join(ofFilePath::join(ofx::PG::Utils::getOFRoot(), "addons"), addons[i]),target);
-					project->addAddon(addon);
+
+					addon.fromFS(ofFilePath::join(ofFilePath::join(ofx::PG::PGUtils::getOFRoot(), "addons"), addons[i]),target);
+
+                    project->addAddon(addon);
 				}
+
 				project->save(false);
 			}
     	}
+
         std::exit(0);
     }
 
 #ifndef COMMAND_LINE_ONLY
     panelAddons.setup();
-    ofDirectory addons(ofFilePath::join(ofx::PG::Utils::getOFRoot(),"addons"));
+
+    ofDirectory addons(ofFilePath::join(ofx::PG::PGUtils::getOFRoot(),"addons"));
+
     addons.listDir();
-    for(int i=0;i<(int)addons.size();i++){
+
+    for (std::size_t i = 0; i < addons.size(); ++i)
+    {
     	string addon = addons.getName(i);
-    	if(addon.find("ofx")==0){
-    		ofxToggle * toggle = new ofxToggle();
+
+    	if(addon.find("ofx") == 0)
+        {
+    		ofxToggle* toggle = new ofxToggle();
+
     		panelAddons.add(toggle->setup(addon,false,300));
     	}
     }
@@ -83,13 +109,15 @@ void ofApp::setup(){
 #endif
 }
 
-void ofApp::setupForTarget(int targ){
-
-    if(project){
+void ofApp::setupForTarget(int targ)
+{
+    if(project)
+    {
 		delete project;
 	}
 
-    switch(targ){
+    switch(targ)
+    {
         case OF_TARGET_OSX:
             project = new ofx::PG::XcodeProject;
             target = "osx";
@@ -127,25 +155,28 @@ void ofApp::setupForTarget(int targ){
     }
 }
 
-void ofApp::generateExamplesCB(){
+void ofApp::generateExamplesCB()
+{
 
 #ifndef COMMAND_LINE_ONLY
 
 	targetsToMake.clear();
-	if( osxToggle )		targetsToMake.push_back(OF_TARGET_OSX);
-	if( iosToggle )		targetsToMake.push_back(OF_TARGET_IPHONE);
-	if( wincbToggle )	targetsToMake.push_back(OF_TARGET_WINGCC);
-	if( winvsToggle )	targetsToMake.push_back(OF_TARGET_WINVS);
-	if( linuxcbToggle )         targetsToMake.push_back(OF_TARGET_LINUX);
-	if( linux64cbToggle )       targetsToMake.push_back(OF_TARGET_LINUX64);
-	if( linuxarmv6lcbToggle )	targetsToMake.push_back(OF_TARGET_LINUXARMV6L);
-	if( linuxarmv7lcbToggle )	targetsToMake.push_back(OF_TARGET_LINUXARMV7L);
+	if ( osxToggle )		targetsToMake.push_back(OF_TARGET_OSX);
+	if ( iosToggle )		targetsToMake.push_back(OF_TARGET_IPHONE);
+	if ( wincbToggle )	targetsToMake.push_back(OF_TARGET_WINGCC);
+	if ( winvsToggle )	targetsToMake.push_back(OF_TARGET_WINVS);
+	if ( linuxcbToggle )         targetsToMake.push_back(OF_TARGET_LINUX);
+	if ( linux64cbToggle )       targetsToMake.push_back(OF_TARGET_LINUX64);
+	if ( linuxarmv6lcbToggle )	targetsToMake.push_back(OF_TARGET_LINUXARMV6L);
+	if ( linuxarmv7lcbToggle )	targetsToMake.push_back(OF_TARGET_LINUXARMV7L);
 
-	if( targetsToMake.size() == 0 ){
+	if (targetsToMake.size() == 0)
+    {
 		cout << "Error: generateExamplesCB - must specifiy a project to generate " <<endl;
 	}
 
-	for(int i = 0; i < (int)targetsToMake.size(); i++){
+	for(std::size_t i = 0; i < targetsToMake.size(); ++i)
+    {
 		setupForTarget(targetsToMake[i]);
 		generateExamples();
 	}
@@ -156,23 +187,32 @@ void ofApp::generateExamplesCB(){
 
 }
 
-void ofApp::generateExamples(){
+void ofApp::generateExamples()
+{
     ofDirectory dir;
-    string examplesPath = ofFilePath::join(ofx::PG::Utils::getOFRoot(),"examples");
+
+    string examplesPath = ofFilePath::join(ofx::PG::PGUtils::getOFRoot(), "examples");
 
 	ofLogNotice() << "Generating examples (from: " << examplesPath << ")";
 
     dir.listDir(examplesPath);
 
-    for (int i = 0; i < (int)dir.size(); i++){
+    for (std::size_t i = 0; i < dir.size(); ++i)
+    {
 
         // don't check subdirectories that aren't directories! (eg., .gitignore etc)
-        if(!dir.getFile(i).isDirectory()) continue;
+        if (!dir.getFile(i).isDirectory())
+            continue;
 
-		if( target == "ios" ){
-			if( dir.getName(i) != "ios" ) continue;
-		}else{
-			if (dir.getName(i) == "android" || dir.getName(i) == "ios") continue;
+		if (target == "ios")
+        {
+			if (dir.getName(i) != "ios")
+                continue;
+		}
+        else
+        {
+			if (dir.getName(i) == "android" || dir.getName(i) == "ios")
+                continue;
         }
 
         ofDirectory subdir;
@@ -182,7 +222,8 @@ void ofApp::generateExamples(){
 
         subdir.listDir(examplesPath);
 
-        for (int j = 0; j < (int)subdir.size(); j++){
+        for (std::size_t j = 0; j < subdir.size(); ++j)
+        {
 
             // don't create projects that aren't directories! (eg., .gitkeep etc)
             if(!subdir.getFile(j).isDirectory()) continue;
@@ -194,22 +235,26 @@ void ofApp::generateExamples(){
             project->setup(target);
             project->create(subdir.getPath(j));
             vector < string > addons;
-            ofx::PG::Utils::parseAddonsDotMake(project->getPath() + "addons.make", addons);
-            for (int i = 0; i < (int)addons.size(); i++){
+            ofx::PG::PGUtils::parseAddonsDotMake(project->getPath() + "addons.make", addons);
+
+            for (std::size_t i = 0; i < addons.size(); ++i)
+            {
                 ofx::PG::ofAddon addon;
-                addon.pathToOF = ofx::PG::Utils::getOFRelPath(subdir.getPath(j));
-                addon.fromFS(ofFilePath::join(ofFilePath::join(ofx::PG::Utils::getOFRoot(), "addons"), addons[i]),target);
+                addon.pathToOF = ofx::PG::PGUtils::getOFRelPath(subdir.getPath(j));
+                addon.fromFS(ofFilePath::join(ofFilePath::join(ofx::PG::PGUtils::getOFRoot(), "addons"), addons[i]),target);
                 project->addAddon(addon);
             }
             project->save(false);
 
         }
     }
+
     ofLogNotice() << " ";
     ofLogNotice() << "Finished generating examples for " << target;
 }
 
-ofFileDialogResult ofApp::makeNewProjectViaDialog(){
+ofFileDialogResult ofApp::makeNewProjectViaDialog()
+{
 
 #ifndef COMMAND_LINE_ONLY
     ofFileDialogResult res = ofSystemSaveDialog("newProjectName", "choose a folder for a new OF project :)");
@@ -217,42 +262,52 @@ ofFileDialogResult ofApp::makeNewProjectViaDialog(){
     //base.pushDirectory(res.fileName);   // somehow an extra things here helps?
 
     vector <int> targetsToMake;
-	if( osxToggle )		targetsToMake.push_back(OF_TARGET_OSX);
-	if( iosToggle )		targetsToMake.push_back(OF_TARGET_IPHONE);
-	if( wincbToggle )	targetsToMake.push_back(OF_TARGET_WINGCC);
-	if( winvsToggle )	targetsToMake.push_back(OF_TARGET_WINVS);
-	if( linuxcbToggle )	targetsToMake.push_back(OF_TARGET_LINUX);
-	if( linux64cbToggle )	targetsToMake.push_back(OF_TARGET_LINUX64);
-	if( linuxarmv6lcbToggle )	targetsToMake.push_back(OF_TARGET_LINUXARMV6L);
-	if( linuxarmv7lcbToggle )	targetsToMake.push_back(OF_TARGET_LINUXARMV7L);
 
-	if( targetsToMake.size() == 0 ){
+    if ( osxToggle )		targetsToMake.push_back(OF_TARGET_OSX);
+	if ( iosToggle )		targetsToMake.push_back(OF_TARGET_IPHONE);
+	if ( wincbToggle )	targetsToMake.push_back(OF_TARGET_WINGCC);
+	if ( winvsToggle )	targetsToMake.push_back(OF_TARGET_WINVS);
+	if ( linuxcbToggle )	targetsToMake.push_back(OF_TARGET_LINUX);
+	if ( linux64cbToggle )	targetsToMake.push_back(OF_TARGET_LINUX64);
+	if ( linuxarmv6lcbToggle )	targetsToMake.push_back(OF_TARGET_LINUXARMV6L);
+ 	if ( linuxarmv7lcbToggle )	targetsToMake.push_back(OF_TARGET_LINUXARMV7L);
+
+	if (targetsToMake.size() == 0)
+    {
 		cout << "Error: makeNewProjectViaDialog - must specifiy a project to generate " <<endl;
 		ofSystemAlertDialog("Error: makeNewProjectViaDialog - must specifiy a project platform to generate");
 	}
 
-	for(int i = 0; i < (int)targetsToMake.size(); i++){
+	for(std::size_t i = 0; i < targetsToMake.size(); ++i)
+    {
 		setupForTarget(targetsToMake[i]);
+
         project->setup(target);
-        if(project->create(res.filePath)){
+
+        if(project->create(res.filePath))
+        {
             vector<string> addonsToggles = panelAddons.getControlNames();
-            for (int i = 0; i < (int) addonsToggles.size(); i++){
+            for (std::size_t i = 0; i < addonsToggles.size(); ++i)
+            {
                 ofxToggle toggle = panelAddons.getToggle(addonsToggles[i]);
-                if(toggle){
+
+                if(toggle)
+                {
                     ofx::PG::ofAddon addon;
-                    addon.pathToOF = ofx::PG::Utils::getOFRelPath(res.filePath);
-                    addon.fromFS(ofFilePath::join(ofFilePath::join(ofx::PG::Utils::getOFRoot(), "addons"), addonsToggles[i]),target);
+                    addon.pathToOF = ofx::PG::PGUtils::getOFRelPath(res.filePath);
+                    addon.fromFS(ofFilePath::join(ofFilePath::join(ofx::PG::PGUtils::getOFRoot(), "addons"), addonsToggles[i]),target);
                     printf("adding %s addons \n", addonsToggles[i].c_str());
                     project->addAddon(addon);
 
                 }
             }
+
             project->save(true);
         }
 	}
+
     return res;
 #endif
-
 }
 
 ofFileDialogResult ofApp::updateProjectViaDialog(){
@@ -272,12 +327,14 @@ ofFileDialogResult ofApp::updateProjectViaDialog(){
 	if( linuxarmv6lcbToggle )	targetsToMake.push_back(OF_TARGET_LINUXARMV6L);
 	if( linuxarmv7lcbToggle )	targetsToMake.push_back(OF_TARGET_LINUXARMV7L);
 
-	if( targetsToMake.size() == 0 ){
+	if( targetsToMake.size() == 0 )
+    {
 		cout << "Error: updateProjectViaDialog - must specifiy a project to generate " <<endl;
 		ofSystemAlertDialog("Error: updateProjectViaDialog - must specifiy a project platform to generate");
 	}
 
-	for(int i = 0; i < (int)targetsToMake.size(); i++){
+	for(std::size_t i = 0; i < targetsToMake.size(); ++i)
+    {
 		setupForTarget(targetsToMake[i]);
         project->setup(target);
         project->create(res.filePath);
@@ -289,8 +346,8 @@ ofFileDialogResult ofApp::updateProjectViaDialog(){
             // (ticks the addons) and then you can untick etc???
             if(toggle){
                 ofx::PG::ofAddon addon;
-                addon.pathToOF = ofx::PG::Utils::getOFRelPath(res.filePath);
-                addon.fromFS(ofFilePath::join(ofFilePath::join(ofx::PG::Utils::getOFRoot(), "addons"), addonsToggles[i]),target);
+                addon.pathToOF = ofx::PG::PGUtils::getOFRelPath(res.filePath);
+                addon.fromFS(ofFilePath::join(ofFilePath::join(ofx::PG::PGUtils::getOFRoot(), "addons"), addonsToggles[i]),target);
                 printf("adding %s addons \n", addonsToggles[i].c_str());
                 project->addAddon(addon);
 
@@ -304,17 +361,22 @@ ofFileDialogResult ofApp::updateProjectViaDialog(){
 
 }
 
-void ofApp::createProjectPressed(){
+void ofApp::createProjectPressed()
+{
 	makeNewProjectViaDialog();
 }
 
-void ofApp::updateProjectPressed(){
+void ofApp::updateProjectPressed()
+{
 	updateProjectViaDialog();
 }
 
-void ofApp::createAndOpenPressed(){
+void ofApp::createAndOpenPressed()
+{
 	ofFileDialogResult res = makeNewProjectViaDialog();
-	if(res.bSuccess){
+
+	if (res.bSuccess)
+    {
 		#ifdef TARGET_LINUX
 			system(("/usr/bin/codeblocks " + ofFilePath::join(res.filePath, res.fileName+".workspace ") + "&").c_str());
 		#elif defined(TARGET_OSX)
@@ -325,15 +387,15 @@ void ofApp::createAndOpenPressed(){
 	}
 }
 
-void ofApp::changeOFRootPressed(){
-	ofx::PG::Utils::askOFRoot();
-	cout << ofx::PG::Utils::getOFRootFromConfig()<<endl;
-	ofx::PG::Utils::setOFRoot(ofx::PG::Utils::getOFRootFromConfig());
+void ofApp::changeOFRootPressed()
+{
+	ofx::PG::PGUtils::askOFRoot();
+	cout << ofx::PG::PGUtils::getOFRootFromConfig()<<endl;
+	ofx::PG::PGUtils::setOFRoot(ofx::PG::PGUtils::getOFRootFromConfig());
 	setupDrawableOFPath();
 }
 
 
-//--------------------------------------------------------------
 void ofApp::draw(){
 
 #ifndef COMMAND_LINE_ONLY
@@ -354,8 +416,9 @@ void ofApp::draw(){
 
 }
 
-//--------------------------------------------------------------
-void ofApp::keyPressed(int key){
+
+void ofApp::keyPressed(int key)
+{
 
     if (key == 'm'){
 
@@ -372,17 +435,17 @@ void ofApp::keyPressed(int key){
 
 }
 
-//--------------------------------------------------------------
+
 void ofApp::windowResized(int w, int h){
 	setupDrawableOFPath();
 }
 
 
-//--------------------------------------------------------------
-void ofApp::setupDrawableOFPath(){
+void ofApp::setupDrawableOFPath()
+{
 
 #ifndef COMMAND_LINE_ONLY
-	vector<string> subdirs = ofSplitString("OF path: " + ofx::PG::Utils::getOFRoot(), "/");
+	vector<string> subdirs = ofSplitString("OF path: " + ofx::PG::PGUtils::getOFRoot(), "/");
 	int textLength = 0;
 	int padding = 5;
 	string path = "";
@@ -395,24 +458,34 @@ void ofApp::setupDrawableOFPath(){
 	ofPathDrawPoint.x = padding*2;
 	ofPathDrawPoint.y = padding*2 + fontSize * leading;
 
-	for(int i = 0; i < subdirs.size(); i++) {
-		if (i > 0 && i<subdirs.size()-1) {
+	for(std::size_t i = 0; i < subdirs.size(); ++i)
+    {
+		if (i > 0 && i<subdirs.size()-1)
+        {
 			subdirs[i] += "/";
 		}
-		if(textLength + subdirs[i].length()*fontSize < ofGetWidth()-padding){
+
+        if(textLength + subdirs[i].length()*fontSize < ofGetWidth()-padding)
+        {
 			textLength += subdirs[i].length()*fontSize;
 			path += subdirs[i];
-		}else {
+		}
+        else
+        {
 			path += "\n";
 			textLength = 0;
 			lines++;
 		}
 	}
+
 	ofPathRect.width = textLength + padding*2;
-	if (lines > 1){
+
+    if (lines > 1)
+    {
 		ofPathRect.width = ofGetWidth() - padding*2;
 	}
-	ofPathRect.height = lines * fontSize * leading + (padding*2);
+
+    ofPathRect.height = lines * fontSize * leading + (padding*2);
 
 	drawableOfPath = path;
 
