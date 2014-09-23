@@ -768,7 +768,7 @@ void XcodeProject::addInclude(const std::string& includeName)
 
         cout << "include name =" << includeName << endl;
 
-//        addInclude(includeName);
+        addInclude(includeName);
     }
 
     //saveFile(projectPath + "/" + projectName + ".xcodeproj" + "/project.pbxproj");
