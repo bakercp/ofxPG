@@ -7,6 +7,7 @@
 #include "ofFileUtils.h"
 #include "ofxPugiXML.h"
 #include "ofx/PG/PGUtils.h"
+#include "ofx/IO/DirectoryUtils.h"
 
 
 namespace ofx {
@@ -232,16 +233,31 @@ void ofAddon::exclude(vector<string> & variable, vector<string> exclusions){
 	}
 }
 
-void ofAddon::parseConfig(){
-	ofFile addonConfig(ofFilePath::join(addonPath,"addon_config.mk"));
+void ofAddon::parseConfig()
+{
+    Poco::Path addonConfigMakePath(_addonPath, "addon_config.mk");
 
-	cout << "parse config " << addonPath << endl;
+    Poco::File addonConfigMakeFile(addonConfigMakePath);
 
-	if(!addonConfig.exists()) return;
+	if (!addonConfigMakeFile.exists())
+    {
+        ofLogVerbose("ofAddon::parseConfig") << "No addon_config.mk file to parse.";
+        return;
+    }
+    else
+    {
+        ofLogVerbose("ofAddon::parseConfig") << "Parsing: " << addonConfigMakePath.toString();
+    }
 
-	string line, originalLine;
-	int lineNum = 0;
-	while(addonConfig.good()){
+    ofFile addonConfig(addonConfigMakePath.toString());
+
+    std::string line;
+    std::string originalLine;
+
+    int lineNum = 0;
+
+    while (addonConfig.good())
+    {
 		lineNum++;
 		getline(addonConfig,originalLine);
 		line = originalLine;
@@ -267,21 +283,30 @@ void ofAddon::parseConfig(){
 		}
 
 		// found Variable
-		if(line.find("=")!=string::npos){
+		if(line.find("=")!=string::npos)
+        {
 			bool addToValue = false;
-			string variable, value;
+            std::string variable;
+            std::string value;
+
 			vector<string> varValue;
-			if(line.find("+=")!=string::npos){
+
+            if(line.find("+=")!=string::npos)
+            {
 				addToValue = true;
-				varValue = ofSplitString(line,"+=");
-			}else{
-				addToValue = false;
-				varValue = ofSplitString(line,"=");
+				varValue = ofSplitString(line, "+=");
 			}
-			variable = Poco::trim(varValue[0]);
+            else
+            {
+				addToValue = false;
+				varValue = ofSplitString(line, "=");
+			}
+
+            variable = Poco::trim(varValue[0]);
 			value = Poco::trim(varValue[1]);
 
-			if(!checkCorrectPlatform(currentParseState)){
+			if (!checkCorrectPlatform(currentParseState))
+            {
 				continue;
 			}
 
@@ -300,26 +325,35 @@ void ofAddon::parseConfig(){
 	exclude(libs,excludeLibs);
 }
 
-void ofAddon::fromFS(string path, string platform){
+void ofAddon::fromFS(const std::string& path, const std::string& platform)
+{
 
-    
-    
     clear();
+
     this->platform = platform;
-	name = ofFilePath::getFileName(path);
-	addonPath = ofFilePath::join(PGUtils::getAddonsRoot(),name);
+
+    name = ofFilePath::getFileName(path);
+
+	_addonPath = ofFilePath::join(PGUtils::getAddonsRoot().toString(), name);
 
     string filePath = path + "/src";
     string ofRootPath = ofFilePath::addTrailingSlash(PGUtils::getOFRoot().toString()); //we need to add a trailing slash for the erase to work properly
+
+    return;
 
     ofLogVerbose() << "in fromFS, trying src " << filePath;
 
 
 	ofSetLogLevel(OF_LOG_NOTICE);
-    PGUtils::getFilesRecursively(filePath, srcFiles);
+
+    IO::DirectoryUtils::listRecursive(filePath, srcFiles);
+
+//    PGUtils::getFilesRecursively(filePath, srcFiles);
+
 	//ofSetLogLevel(OF_LOG_VERBOSE);
 
-    for(int i=0;i<(int)srcFiles.size();i++){
+    for(std::size_t i = 0;i < srcFiles.size(); ++i)
+    {
     	srcFiles[i].erase (srcFiles[i].begin(), srcFiles[i].begin()+ofRootPath.length());
 		//ofLogVerbose() << " srcFiles " << srcFiles[i];
     	int init = 0;
@@ -333,19 +367,20 @@ void ofAddon::fromFS(string path, string platform){
     	filesToFolders[srcFiles[i]] = folder;
     }
 
-    string libsPath = path + "/libs";
-    vector < string > libFiles;
+    std::string libsPath = path + "/libs";
+    std::vector<std::string> libFiles;
 
 
-	//ofSetLogLevel(OF_LOG_NOTICE);
-    if (ofDirectory::doesDirectoryExist(libsPath)){
+    if (ofDirectory::doesDirectoryExist(libsPath))
+    {
         PGUtils::getLibsRecursively(libsPath, libFiles, libs, platform);
     }
     //ofSetLogLevel(OF_LOG_VERBOSE);
 
 
     // I need to add libFiles to srcFiles
-    for (int i = 0; i < (int)libFiles.size(); i++){
+    for (std::size_t i = 0; i < libFiles.size(); ++i)
+    {
     	libFiles[i].erase (libFiles[i].begin(), libFiles[i].begin()+ofRootPath.length());
 		//ofLogVerbose() << " libFiles " << libFiles[i];
     	int init = 0;
@@ -425,7 +460,7 @@ void ofAddon::fromFS(string path, string platform){
 
 }
 
-void ofAddon::fromXML(string installXmlName){
+void ofAddon::fromXML(const std::string& installXmlName){
 	clear();
     pugi::xml_document doc;
     pugi::xml_parse_result result = doc.load_file(ofToDataPath(installXmlName).c_str());

@@ -166,7 +166,7 @@ void ofApp::setup(){
     convertWindowsToUnixPath(sketchPath);
 
     // there's some issues internally in OF with non unix paths for OF root
-    ofx::PG::Utils::setOFRoot(ofRoot);
+    ofx::PG::PGUtils::setOFRoot(ofRoot);
 
 
 
@@ -488,7 +488,7 @@ void ofApp::generateProject(){
                 ofxToggle toggle = panelCoreAddons.getToggle(addonsToggles[i]);
                 if(toggle){
                     ofx::PG::ofAddon addon;
-                    addon.pathToOF = ofx::PG::Utils::getOFRelPath(path);
+                    addon.pathToOF = ofx::PG::PGUtils::getOFRelPath(path);
                     addon.fromFS(ofFilePath::join(addonsPath, addonsToggles[i]),target);
                     project->addAddon(addon);
 
@@ -502,8 +502,8 @@ void ofApp::generateProject(){
                 if(toggle){
                     ofx::PG::ofAddon addon;
 
-                    addon.pathToOF = ofx::PG::Utils::getOFRelPath(path);
-                    cout << ofx::PG::Utils::getOFRelPath(path) << " " << path << endl;
+                    addon.pathToOF = ofx::PG::PGUtils::getOFRelPath(path);
+                    cout << ofx::PG::PGUtils::getOFRelPath(path) << " " << path << endl;
                     addon.fromFS(ofFilePath::join(addonsPath, addonsToggles[i]),target);
                     project->addAddon(addon);
 
@@ -562,7 +562,7 @@ void ofApp::mousePressed(int x, int y, int button){
 
             string command = "";
 
-            ofDirectory dir(ofFilePath::join(ofx::PG::Utils::getOFRoot(),defaultLoc));
+            ofDirectory dir(ofFilePath::join(ofx::PG::PGUtils::getOFRoot().toString(),defaultLoc));
 
             if (!dir.exists()){
                 dir.create();

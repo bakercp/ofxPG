@@ -1,4 +1,6 @@
 #include "ofx/PG/BaseProject.h"
+#include "ofx/IO/DirectoryUtils.h"
+#include "ofx/IO/FileExtensionFilter.h"
 
 
 namespace ofx {
@@ -6,49 +8,60 @@ namespace PG {
         
 
 
-BaseProject::BaseProject(): bLoaded(false)
+BaseProject::BaseProject(): _bLoaded(false)
 {
 }
 
 
-void BaseProject::setup(const std::string& _target)
+void BaseProject::setup(const std::string& target)
 {
-    target = _target;
+    ofLogVerbose("BaseProject::setup") << "Setting up project target: " << _target;
+    _target = target;
 
-    templatePath = PGUtils::getOFRoot();
-    templatePath.pushDirectory("scripts");
-    templatePath.pushDirectory(target);
-    templatePath.pushDirectory("template");
+    _templatePath = PGUtils::getOFRoot();
+    _templatePath.pushDirectory("scripts");
+    _templatePath.pushDirectory(target);
+    _templatePath.pushDirectory("template");
+
+    ofLogVerbose("BaseProject::setup") << "Using template path: " << _templatePath.toString();
 
     setup(); // call the inherited class setup(), now that target is set.
 }
 
 
-bool BaseProject::create(const std::string& path)
+bool BaseProject::create(const Poco::Path& path)
 {
-    addons.clear();
+    _projectPath = path;
 
-    projectPath = ofFilePath::addTrailingSlash(path);
-    projectName = ofFilePath::getFileName(path);
+    ofLogVerbose("BaseProject::setup") << "Creating project: " << _projectPath.toString();
+
+    _addons.clear();
+
+    _projectName = path.directory(path.depth() - 1);
+
+    ofLogVerbose("BaseProject::setup") << "Project Name: " << _projectName;
+
     bool bDoesDirExist = false;
-    
-    ofDirectory project(ofFilePath::join(projectPath,"src"));    // this is a directory, really?
-    if (project.exists())
+
+    Poco::Path sourcePath(_projectPath, "src/");
+    Poco::File sourceDirectory(sourcePath);
+
+    if (sourceDirectory.exists())
     {
         bDoesDirExist = true;
     }
     else
     {
-        Poco::Path templateSrcPath(templatePath);
+        Poco::Path templateSrcPath(_templatePath);
         templateSrcPath.pushDirectory("src");
 
-        Poco::Path templateBinPath(templatePath);
+        Poco::Path templateBinPath(_templatePath);
         templateBinPath.pushDirectory("bin");
 
-        Poco::Path projectSrcPath(projectPath);
+        Poco::Path projectSrcPath(_projectPath);
         projectSrcPath.pushDirectory("src");
 
-        Poco::Path projectBinPath(projectPath);
+        Poco::Path projectBinPath(_projectPath);
         projectBinPath.pushDirectory("bin");
 
         Poco::File templateSrc(templateSrcPath);
@@ -56,30 +69,49 @@ bool BaseProject::create(const std::string& path)
 
         templateSrc.copyTo(projectSrcPath.toString());
         templateBin.copyTo(projectBinPath.toString());
-
-//        ofFile::copyFromTo(ofFilePath::join(templatePath,"src"),ofFilePath::join(projectPath,"src"));
-//
-//        ofFile::copyFromTo(ofFilePath::join(templatePath,"bin"),ofFilePath::join(projectPath,"bin"));
     }
 
     
     // if overwrite then ask for permission...
 
     bool ret = createProjectFile();
-    if(!ret) return false;
+
+    if(!createProjectFile())
+        return false;
     
-    ret = loadProjectFile();
-    if(!ret) return false;
+    if(!loadProjectFile())
+        return false;
 
-    if (bDoesDirExist){
-        vector < string > fileNames;
-        PGUtils::getFilesRecursively(ofFilePath::join(projectPath , "src"), fileNames);
+    if (bDoesDirExist)
+    {
+        std::vector<std::string> fileNames;
 
-        for (int i = 0; i < (int)fileNames.size(); i++){
+        IO::FileExtensionFilter fileExtensionFilter;
 
-            fileNames[i].erase(fileNames[i].begin(), fileNames[i].begin() + projectPath.length());
+        fileExtensionFilter.addExtension("c");
+        fileExtensionFilter.addExtension("cpp");
+        fileExtensionFilter.addExtension("hpp");
+        fileExtensionFilter.addExtension("h");
+        fileExtensionFilter.addExtension("m");
+        fileExtensionFilter.addExtension("mm");
 
-            string first, last;
+        Poco::File sourceDirectory(sourcePath);
+
+
+        IO::DirectoryUtils::listRecursive(sourcePath.toString(),
+                                          fileNames,
+                                          true,
+                                          &fileExtensionFilter);
+
+        for (std::size_t i = 0; i < fileNames.size(); ++i)
+        {
+
+            fileNames[i].erase(fileNames[i].begin(),
+                               fileNames[i].begin() + _projectPath.toString().length());
+
+            std::string first;
+            std::string last;
+
 #ifdef TARGET_WIN32
             PGUtils::splitFromLast(fileNames[i], "\\", first, last);
 #else
@@ -89,7 +121,8 @@ bool BaseProject::create(const std::string& path)
                 fileNames[i] != "src/ofApp.h" &&
                 fileNames[i] != "src/main.cpp" &&
                 fileNames[i] != "src/ofApp.mm" &&
-                fileNames[i] != "src/main.mm"){
+                fileNames[i] != "src/main.mm")
+            {
                 addSrc(fileNames[i], first);
             }
         }
@@ -116,10 +149,12 @@ bool BaseProject::create(const std::string& path)
     		parseAddons();
 #endif
         // get a unique list of the paths that are needed for the includes.
-        list < string > paths;
-        vector < string > includePaths;
-        for (int i = 0; i < (int)fileNames.size(); i++){
-            size_t found;
+        std::list<std::string> paths;
+        std::vector<std::string> includePaths;
+
+        for (std::size_t i = 0; i < fileNames.size(); ++i)
+        {
+            std::size_t found;
     #ifdef TARGET_WIN32
             found = fileNames[i].find_last_of("\\");
     #else
@@ -131,12 +166,12 @@ bool BaseProject::create(const std::string& path)
         paths.sort();
         paths.unique();
 
-        for (list<string>::iterator it=paths.begin(); it!=paths.end(); ++it)
+        for (std::list<std::string>::iterator it=paths.begin(); it != paths.end(); ++it)
         {
             includePaths.push_back(*it);
         }
 
-        for (int i = 0; i < includePaths.size(); i++)
+        for (std::size_t i = 0; i < includePaths.size(); ++i)
         {
             addInclude(includePaths[i]);
         }
@@ -147,16 +182,19 @@ bool BaseProject::create(const std::string& path)
 
 bool BaseProject::save(bool createMakeFile)
 {
-
     // only save an addons.make file if requested on ANY platform
     // this way we don't thrash the git repo for our examples, but
     // we do make the addons.make file for any new projects...that
     // way it can be distributed and re-used by others with the PG
 
-    if(createMakeFile){
-        ofFile addonsMake(ofFilePath::join(projectPath,"addons.make"), ofFile::WriteOnly);
-        for(int i = 0; i < addons.size(); i++){
-            addonsMake << addons[i].name << endl;
+    if (createMakeFile)
+    {
+        ofFile addonsMake(ofFilePath::join(_projectPath.toString(), "addons.make"),
+                          ofFile::WriteOnly);
+
+        for(std::size_t i = 0; i < _addons.size(); ++i)
+        {
+            addonsMake << _addons[i].name << endl;
         }
     }
 
@@ -166,62 +204,71 @@ bool BaseProject::save(bool createMakeFile)
 void BaseProject::addAddon(ofAddon& addon)
 {
 
-    for (std::size_t i = 0; i < addons.size(); ++i)
+    for (std::size_t i = 0; i < _addons.size(); ++i)
     {
-		if(addons[i].name == addon.name)
+		if (_addons[i].name == addon.name)
         {
             return;
         }
 	}
 
-	addons.push_back(addon);
+	_addons.push_back(addon);
 
     for (std::size_t i = 0; i < addon.includePaths.size(); ++i)
     {
-        ofLogVerbose() << "adding addon include path: " << addon.includePaths[i];
+        ofLogVerbose("BaseProject::addAddon") << "Adding addon include path: " << addon.includePaths[i];
         addInclude(addon.includePaths[i]);
     }
 
     for (std::size_t i = 0; i < addon.libs.size(); ++i)
     {
-        ofLogVerbose() << "adding addon libs: " << addon.libs[i];
+        ofLogVerbose("BaseProject::addAddon") << "Adding addon libs: " << addon.libs[i];
         addLibrary(addon.libs[i], RELEASE_LIB);
     }
 
     for (std::size_t i = 0; i < addon.srcFiles.size(); ++i)
     {
-        ofLogVerbose() << "adding addon srcFiles: " << addon.srcFiles[i];
+        ofLogVerbose("BaseProject::addAddon") << "Adding addon srcFiles: " << addon.srcFiles[i];
         addSrc(addon.srcFiles[i],addon.filesToFolders[addon.srcFiles[i]]);
     }
 }
 
 void BaseProject::parseAddons()
 {
-	ofFile addonsMake(ofFilePath::join(projectPath,"addons.make"));
-	ofBuffer addonsMakeMem;
-	addonsMake >> addonsMakeMem;
+    ofFile addonsMake(ofFilePath::join(_projectPath.toString(), "addons.make"));
 
-	while (!addonsMakeMem.isLastLine())
+    ofBuffer addonsMakeMem;
+
+    addonsMake >> addonsMakeMem;
+
+    ofBuffer::Line lineIter = addonsMakeMem.getLines().begin();
+
+    while (lineIter != addonsMakeMem.getLines().end())
     {
-		ofAddon addon;
-		addon.pathToOF = PGUtils::getOFRelPath(projectPath);
-		addon.fromFS(ofFilePath::join(ofFilePath::join(PGUtils::getOFRoot().toString(), "addons"),
-                                      addonsMakeMem.getNextLine()),
-                                      target);
-		addAddon(addon);
-	}
+        ofAddon addon;
+
+        addon.pathToOF = PGUtils::getOFRelPath(_projectPath.toString()).toString();
+
+        Poco::Path addonsPath(PGUtils::getOFRoot(), "addons/");
+
+        addon.fromFS(Poco::Path(addonsPath, *lineIter).toString(), _target);
+        
+        addAddon(addon);
+        
+        ++lineIter;
+    }
 }
 
 
 std::string BaseProject::getName() const
 {
-    return projectName;
+    return _projectName;
 }
 
 
-std::string BaseProject::getPath() const
+Poco::Path BaseProject::getPath() const
 {
-    return projectPath;
+    return _projectPath;
 }
 
 

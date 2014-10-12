@@ -29,7 +29,8 @@ public:
 
     void setup(const std::string& _target);
 
-    bool create(const std::string& path);
+    bool create(const Poco::Path& path);
+    
     bool save(bool createMakeFile);
 
     virtual void addSrc(const std::string& srcFile,
@@ -43,7 +44,7 @@ public:
 	virtual void addAddon(ofAddon& addon);
 
     std::string getName() const;
-	std::string getPath() const;
+	Poco::Path getPath() const;
 
     // this shouldn't be called by anyone.  call "create(...), save" etc
 
@@ -51,15 +52,15 @@ public:
     // this should get called at the end.
 
 protected:
-    std::vector<ofAddon> addons;
+    std::vector<ofAddon> _addons;
 
-    std::string projectPath;
-    std::string projectName;
-    Poco::Path templatePath;
-    std::string target;
+    Poco::Path _projectPath;
+    std::string _projectName;
+    Poco::Path _templatePath;
+    std::string _target;
 
-    pugi::xml_document doc;
-    bool bLoaded;
+    pugi::xml_document _doc;
+    bool _bLoaded;
 
 private:
     virtual void setup()=0;

@@ -12,69 +12,73 @@ namespace PG {
 class PGUtils
 {
 public:
-    static std::string generateUUID(string input);
+    static std::string generateUUID(std::string input);
 
     static Poco::Path getOFRoot();
+    static Poco::Path getAddonsRoot();
 
-    static string getAddonsRoot();
-
-    static void setOFRoot(string path);
+    static void setOFRoot(const Poco::Path& path);
 
     static void findandreplace(std::string& tInput,
                                std::string tFind,
                                std::string tReplace);
 
-    static void findandreplaceInTexfile(string fileName,
-                                        string tFind,
-                                        string tReplace);
+    static void findandreplaceInTexfile(std::string fileName,
+                                        std::string tFind,
+                                        std::string tReplace);
 
-    static bool isFolderNotCurrentPlatform(string folderName, string platform);
+    static bool isFolderNotCurrentPlatform(std::string folderName,
+                                           std::string platform);
 
     static bool doesTagAndAttributeExist(pugi::xml_document& doc,
-                                         string tag, string attribute,
-                                         string newValue);
+                                         std::string tag,
+                                         std::string attribute,
+                                         std::string newValue);
 
     static pugi::xml_node appendValue(pugi::xml_document& doc,
-                                      string tag,
-                                      string attribute,
-                                      string newValue,
+                                      std::string tag,
+                                      std::string attribute,
+                                      std::string newValue,
                                       bool addMultiple = false);
 
     static void getFoldersRecursively(const string& path,
                                       vector<string>& folderNames,
                                       string platform);
 
-    static void getFilesRecursively(const string& path,
-                                    vector<string>& fileNames);
+//    static void getFilesRecursively(const string& path,
+//                                    vector<string>& fileNames);
 
-    static void getLibsRecursively(const string& path,
-                                   vector<string>& libFiles,
-                                   vector<string>& libLibs,
-                                   string platform = "" );
+    static void getLibsRecursively(const std::string& path,
+                                   std::vector<std::string>& libFiles,
+                                   std::vector<std::string>& libLibs,
+                                   std::string platform = "" );
 
-    static void splitFromLast(string toSplit,
-                              string deliminator,
-                              string& first,
-                              string& second);
+    static void splitFromLast(std::string toSplit,
+                              std::string deliminator,
+                              std::string& first,
+                              std::string& second);
 
-    static void splitFromFirst(string toSplit,
-                               string deliminator,
-                               string& first,
-                               string& second);
+    static void splitFromFirst(std::string toSplit,
+                               std::string deliminator,
+                               std::string& first,
+                               std::string& second);
 
-    static void parseAddonsDotMake(string path,
-                                   vector <string>& addons);
+    static void parseAddonsDotMake(const std::string& path,
+                                   std::vector<std::string>& addons);
 
-    static void fixSlashOrder(string& toFix);
+    static void fixSlashOrder(std::string& toFix);
 
-    static string unsplitString(vector<string> strings,
-                                string deliminator );
+    static std::string unsplitString(std::vector<std::string> strings,
+                                     std::string deliminator );
 
-    static string getOFRelPath(string from);
+    static Poco::Path getOFRelPath(const Poco::Path& from);
+
+    static Poco::Path makeRelativePath(const Poco::Path& from, const Poco::Path& to);
+
 
     static bool checkConfigExists();
     static bool askOFRoot();
-    static string getOFRootFromConfig();
+    static std::string getOFRootFromConfig();
 
     template <class T>
     static bool isInVector(T item, vector<T> & vec)
@@ -89,9 +93,9 @@ public:
         return bIsInVector;
     }
 
-    static vector <string> platforms;
+    static std::vector<std::string> platforms;
 
-    static string OFRoot;
+    static Poco::Path OFRoot;
 
 };
 

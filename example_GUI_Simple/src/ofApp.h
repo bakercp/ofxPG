@@ -4,7 +4,7 @@
 
 #include "ofMain.h"
 #include "ofxGui.h"
-#include "ofxProjectGenerator.h"
+#include "ofxPG.h"
 #include "ofxXmlSettings.h"
 #include "TextButton.h"
 

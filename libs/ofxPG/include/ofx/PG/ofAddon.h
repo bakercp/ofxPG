@@ -3,6 +3,7 @@
 
 #include <map>
 #include "ofConstants.h"
+#include "Poco/Path.h"
 
 
 namespace ofx {
@@ -14,8 +15,8 @@ class ofAddon
 public:
     ofAddon();
     
-	void fromFS(string path, string platform);
-	void fromXML(string installXmlName);
+	void fromFS(const std::string& path, const std::string& platform);
+	void fromXML(const std::string& installXmlName);
 	void clear();
 
     /// this is source files:
@@ -83,7 +84,7 @@ private:
     vector<string> excludeSources;
     vector<string> excludeIncludes;
 
-    string addonPath;
+    Poco::Path _addonPath;
 };
 
 

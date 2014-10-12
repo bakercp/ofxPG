@@ -1,4 +1,4 @@
-ofxPG
 ofxPugiXML
 ofxGui
 ofxXmlSettings
+ofxPG

@@ -15,16 +15,16 @@
 #include "Poco/HMACEngine.h"
 #include "Poco/MD5Engine.h"
 
-#ifdef TARGET_WIN32
-#include <direct.h>
-#define GetCurrentDir _getcwd
-#elif defined(TARGET_LINUX)
-#include <unistd.h>
-#define GetCurrentDir getcwd
-#else
-#include <mach-o/dyld.h>	/* _NSGetExecutablePath */
-#include <limits.h>		/* PATH_MAX */
-#endif
+//#ifdef TARGET_WIN32
+//#include <direct.h>
+//#define GetCurrentDir _getcwd
+//#elif defined(TARGET_LINUX)
+//#include <unistd.h>
+//#define GetCurrentDir getcwd
+//#else
+//#include <mach-o/dyld.h>	/* _NSGetExecutablePath */
+//#include <limits.h>		/* PATH_MAX */
+//#endif
 
 #include "ofUtils.h"
 
@@ -33,8 +33,8 @@ namespace ofx {
 namespace PG {
 
 
-std::string PGUtils::OFRoot = "../../..";
-std::vector<std::string> PGUtils::platforms = vector<string>();
+Poco::Path PGUtils::OFRoot("../../..");
+std::vector<std::string> PGUtils::platforms = std::vector<std::string>();
 
 
 string PGUtils::generateUUID(string input){
@@ -176,36 +176,36 @@ pugi::xml_node PGUtils::appendValue(pugi::xml_document& doc,
 
 }
 
-// todo -- this doesn't use ofToDataPath -- so it's broken a bit.  can we fix?
-void PGUtils::getFilesRecursively(const string & path,
-                                  vector<string>& fileNames)
-{
-
-    ofDirectory dir;
-
-    //ofLogVerbose() << "in getFilesRecursively "<< path << endl;
-
-    dir.listDir(path);
-
-    for (int i = 0; i < dir.size(); ++i)
-    {
-        ofFile temp(dir.getFile(i));
-
-        if (dir.getName(i) == ".svn")
-            continue; // ignore svn
-
-        if (temp.isFile())
-        {
-            fileNames.push_back(dir.getPath(i));
-        }
-        else if (temp.isDirectory())
-        {
-            getFilesRecursively(dir.getPath(i), fileNames);
-        }
-    }
-    //folderNames.push_back(path);
-
-}
+//// todo -- this doesn't use ofToDataPath -- so it's broken a bit.  can we fix?
+//void PGUtils::getFilesRecursively(const Poco::Path& path,
+//                                  std::vector<std::string>& fileNames)
+//{
+//
+//    ofDirectory dir;
+//
+//    //ofLogVerbose() << "in getFilesRecursively "<< path << endl;
+//
+//    dir.listDir(path);
+//
+//    for (int i = 0; i < dir.size(); ++i)
+//    {
+//        ofFile temp(dir.getFile(i));
+//
+//        if (dir.getName(i) == ".svn")
+//            continue; // ignore svn
+//
+//        if (temp.isFile())
+//        {
+//            fileNames.push_back(dir.getPath(i));
+//        }
+//        else if (temp.isDirectory())
+//        {
+//            getFilesRecursively(dir.getPath(i), fileNames);
+//        }
+//    }
+//    //folderNames.push_back(path);
+//
+//}
 
 
 bool PGUtils::isFolderNotCurrentPlatform(string folderName, string platform)
@@ -460,69 +460,82 @@ string PGUtils::unsplitString(vector <string> strings,
 
 Poco::Path PGUtils::getOFRoot()
 {
-	return Poco::Path::forDirectory(OFRoot);
+	return OFRoot;
 }
 
-string PGUtils::getAddonsRoot()
+Poco::Path PGUtils::getAddonsRoot()
 {
-	return ofFilePath::join(getOFRoot().toString(), "addons");
+    return Poco::Path(OFRoot, "addons/");
 }
 
 
-void PGUtils::setOFRoot(string path)
+void PGUtils::setOFRoot(const Poco::Path& path)
 {
 	OFRoot = path;
 }
 
-string PGUtils::getOFRelPath(string from)
+Poco::Path PGUtils::makeRelativePath(const Poco::Path& from,
+                                     const Poco::Path& to)
 {
-	from = ofFilePath::removeTrailingSlash(from);
-    Poco::Path base(true);
-    base.parse(from);
+    Poco::Path fromAbsolutePath(from);
+    fromAbsolutePath.makeAbsolute();
 
-    Poco::Path path;
-    path.parse( PGUtils::getOFRoot().toString() );
-    path.makeAbsolute();
+    Poco::Path toAbsolutePath(to);
+    toAbsolutePath.makeAbsolute();
+
+    Poco::Path relPath;
+
+    int maximumDepth = MAX(fromAbsolutePath.depth(), toAbsolutePath.depth());
+
+    for (int i = 0; i <= maximumDepth; ++i)
+    {
+        bool bRunOut = false;
+        bool bChanged = false;
+
+        if (i <= fromAbsolutePath.depth() &&
+            i <= toAbsolutePath.depth())
+        {
+            if (fromAbsolutePath.directory(i) != toAbsolutePath.directory(i))
+            {
+                bChanged = true;
+            }
+        }
+        else
+        {
+            bRunOut = true;
+        }
 
 
-	string relPath;
-	if (path.toString() == base.toString()){
-		// do something.
-	}
+        if (bRunOut == true || bChanged == true)
+        {
+            for (int j = i; j <= fromAbsolutePath.depth(); ++j)
+            {
+                relPath.pushDirectory("..");
+            }
+            
+            for (int j = i; j <= toAbsolutePath.depth(); ++j)
+            {
+                relPath.pushDirectory(toAbsolutePath.directory(j));
+            }
+            
+            break;
+        }
+    }
 
-	int maxx = MAX(base.depth(), path.depth());
-	for (int i = 0; i <= maxx; i++){
+    ofLogVerbose("PGUtils::makeRelativePath") << "From: " << fromAbsolutePath.toString();
+    ofLogVerbose("PGUtils::makeRelativePath") << "  To: " << toAbsolutePath.toString();
+    ofLogVerbose("PGUtils::makeRelativePath") << " Rel: " << relPath.toString();
 
-		bool bRunOut = false;
-		bool bChanged = false;
-		if (i <= base.depth() && i <= path.depth()){
-			if (base.directory(i) == path.directory(i)){
-
-			} else {
-				bChanged = true;
-			}
-		} else {
-			bRunOut = true;
-		}
-
-
-		if (bRunOut == true || bChanged == true){
-            for (int j = i; j <= base.depth(); j++){
-				relPath += "../";
-			}
-			for (int j = i; j <= path.depth(); j++){
-				relPath += path.directory(j) + "/";
-			}
-			break;
-		}
-	}
-
-    ofLogVerbose() << " returning path " << relPath << endl;
-    
     return relPath;
 }
 
-void PGUtils::parseAddonsDotMake(string path, vector<string>& addons)
+
+Poco::Path PGUtils::getOFRelPath(const Poco::Path& from)
+{
+    return PGUtils::makeRelativePath(from, PGUtils::getOFRoot());
+}
+
+void PGUtils::parseAddonsDotMake(const string& path, std::vector<std::string>& addons)
 {
     addons.clear();
 
@@ -537,15 +550,32 @@ void PGUtils::parseAddonsDotMake(string path, vector<string>& addons)
 
     addonsmake >> addonsmakebuff;
 
-	while (!addonsmakebuff.isLastLine() && addonsmakebuff.size() > 0)
+    ofBuffer::Line linesIter = addonsmakebuff.getLines().begin();
+
+    while (linesIter != addonsmakebuff.getLines().end())
     {
-        string line = addonsmakebuff.getNextLine();
+        std::string line = *linesIter;
 
         if (!line.empty())
         {
-			addons.push_back(line);
-		}
-	}
+            addons.push_back(line);
+            std::cout << "ADDON: " << line << std::endl;
+        }
+
+        ++linesIter;
+    }
+
+    
+
+//	while (!addonsmakebuff.isLastLine() && addonsmakebuff.size() > 0)
+//    {
+//        string line = addonsmakebuff.getNextLine();
+//
+//        if (!line.empty())
+//        {
+//			addons.push_back(line);
+//		}
+//	}
 }
 
 bool PGUtils::checkConfigExists()
